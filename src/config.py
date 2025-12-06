@@ -11,7 +11,7 @@ OUTPUT_DIR = PROJECT_ROOT / "output"
 
 # Gemini API Configuration
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
-GEMINI_MODEL = "gemini-2.0-flash-exp"  # Latest Gemini 2.0 Flash
+GEMINI_MODEL = "gemini-2.5-flash"  # Latest Gemini 2.5 Flash
 
 # CSV Output Files (13 files required)
 OUTPUT_CSV_FILES = [
