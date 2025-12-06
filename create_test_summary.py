@@ -33,6 +33,18 @@ for i in range(num_test_cases):
     statements = test_statement[test_statement['submitter_id'] == nacc_id]
     relatives = test_relative[test_relative['submitter_id'] == nacc_id]
     
+    # Calculate statement sums
+    stmt_sub_sum = statements['valuation_submitter'].sum() if 'valuation_submitter' in statements.columns and len(statements) > 0 else 0.0
+    stmt_spouse_sum = statements['valuation_spouse'].sum() if 'valuation_spouse' in statements.columns and len(statements) > 0 else 0.0
+    stmt_child_sum = statements['valuation_child'].sum() if 'valuation_child' in statements.columns and len(statements) > 0 else 0.0
+
+    # Calculate asset sums
+    asset_total = float(assets['valuation'].sum()) if 'valuation' in assets.columns and len(assets) > 0 else 0.0
+    asset_land = float(assets[assets['asset_type_id'] == 1]['valuation'].sum()) if 'valuation' in assets.columns and len(assets) > 0 else 0.0
+    asset_bldg = float(assets[(assets['asset_type_id'] >= 10) & (assets['asset_type_id'] <= 13)]['valuation'].sum()) if 'valuation' in assets.columns and len(assets) > 0 else 0.0
+    asset_veh = float(assets[(assets['asset_type_id'] >= 18) & (assets['asset_type_id'] <= 19)]['valuation'].sum()) if 'valuation' in assets.columns and len(assets) > 0 else 0.0
+    asset_other = float(assets[(assets['asset_type_id'] > 19) | ((assets['asset_type_id'] > 1) & (assets['asset_type_id'] < 10))]['valuation'].sum()) if 'valuation' in assets.columns and len(assets) > 0 else 0.0
+
     # สร้าง row ตาม template
     row = {
         'id': i + 1,
@@ -76,10 +88,10 @@ for i in range(num_test_cases):
         'spouse_status_month': 'NONE',
         'spouse_status_year': 'NONE',
         
-        # Statement statistics (mock data doesn't have owner_by columns)
-        'statement_valuation_submitter_total': float(statements['valuation'].sum() * 0.6) if len(statements) > 0 else 0.0,
-        'statement_valuation_spouse_total': float(statements['valuation'].sum() * 0.3) if len(statements) > 0 else 0.0,
-        'statement_valuation_child_total': float(statements['valuation'].sum() * 0.1) if len(statements) > 0 else 0.0,
+        # Statement statistics
+        'statement_valuation_submitter_total': float(stmt_sub_sum),
+        'statement_valuation_spouse_total': float(stmt_spouse_sum),
+        'statement_valuation_child_total': float(stmt_child_sum),
         'statement_detail_count': len(statements),
         'has_statement_detail_note': int(np.random.random() > 0.8),
         
@@ -90,15 +102,15 @@ for i in range(num_test_cases):
         'asset_vehicle_count': int(len(assets[(assets['asset_type_id'] >= 18) & (assets['asset_type_id'] <= 19)])) if len(assets) > 0 else 0,
         'asset_other_count': int(len(assets[(assets['asset_type_id'] > 19) | ((assets['asset_type_id'] > 1) & (assets['asset_type_id'] < 10))])) if len(assets) > 0 else 0,
         
-        # Asset valuations (mock data doesn't have owner_by columns)
-        'asset_total_valuation_amount': float(assets['valuation'].sum()) if len(assets) > 0 else 0.0,
-        'asset_land_valuation_amount': float(assets[assets['asset_type_id'] == 1]['valuation'].sum()) if len(assets) > 0 else 0.0,
-        'asset_building_valuation_amount': float(assets[(assets['asset_type_id'] >= 10) & (assets['asset_type_id'] <= 13)]['valuation'].sum()) if len(assets) > 0 else 0.0,
-        'asset_vehicle_valuation_amount': float(assets[(assets['asset_type_id'] >= 18) & (assets['asset_type_id'] <= 19)]['valuation'].sum()) if len(assets) > 0 else 0.0,
-        'asset_other_asset_valuation_amount': float(assets[(assets['asset_type_id'] > 19) | ((assets['asset_type_id'] > 1) & (assets['asset_type_id'] < 10))]['valuation'].sum()) if len(assets) > 0 else 0.0,
-        'asset_valuation_submitter_amount': float(assets['valuation'].sum() * 0.5) if len(assets) > 0 else 0.0,
-        'asset_valuation_spouse_amount': float(assets['valuation'].sum() * 0.3) if len(assets) > 0 else 0.0,
-        'asset_valuation_child_amount': float(assets['valuation'].sum() * 0.2) if len(assets) > 0 else 0.0,
+        # Asset valuations
+        'asset_total_valuation_amount': asset_total,
+        'asset_land_valuation_amount': asset_land,
+        'asset_building_valuation_amount': asset_bldg,
+        'asset_vehicle_valuation_amount': asset_veh,
+        'asset_other_asset_valuation_amount': asset_other,
+        'asset_valuation_submitter_amount': float(asset_total * 0.5),
+        'asset_valuation_spouse_amount': float(asset_total * 0.3),
+        'asset_valuation_child_amount': float(asset_total * 0.2),
         
         # Relative stats
         'relative_count': len(relatives),
