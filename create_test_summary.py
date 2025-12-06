@@ -26,14 +26,48 @@ test_doc_info = pd.read_csv("data/test final/test final input/Test final_doc_inf
 
 summary_rows = []
 
+# Load metadata files
+test_submitter = pd.read_csv("data/test final/test final input/Test final_submitter_info.csv", encoding='utf-8-sig')
+test_nacc = pd.read_csv("data/test final/test final input/Test final_nacc_detail.csv", encoding='utf-8-sig')
+
+summary_rows = []
+
 # Iterate over actual test cases
 for idx, doc_row in test_doc_info.iterrows():
     # Use actual IDs from the input file
-    case_id = doc_row.get('id', idx + 1)  # Fallback to index if id not found, but should be there
+    case_id = doc_row.get('id', idx + 1)
     nacc_id = doc_row['nacc_id']
     
-    # Filter data for this nacc_id (Note: our generated data used 1-23, need to map if nacc_id is different)
-    # Since our fast_mock.py generated for IDs 1-23 based on order, we map index to generated ID
+    # Get NACC detail
+    nacc_row = test_nacc[test_nacc['nacc_id'] == nacc_id]
+    if nacc_row.empty:
+        print(f"Warning: No NACC info for ID {nacc_id}")
+        # Fallback
+        nacc_info = {
+            'title': 'นาย', 'first_name': 'ไม่ระบุ', 'last_name': 'ไม่ระบุ',
+            'position': 'ไม่ระบุ', 'submit_date': '2023-01-01',
+            'agency': 'ไม่ระบุ', 'submitter_id': 0
+        }
+    else:
+        nacc_info = nacc_row.iloc[0]
+        
+    # Get Submitter detail
+    submitter_id = nacc_info['submitter_id']
+    submitter_row = test_submitter[test_submitter['submitter_id'] == submitter_id]
+    
+    if submitter_row.empty:
+        # Fallback if not found
+        submitter_info = {
+            'title': nacc_info.get('title', 'นาย'),
+            'first_name': nacc_info.get('first_name', 'ไม่ระบุ'),
+            'last_name': nacc_info.get('last_name', 'ไม่ระบุ'),
+            'age': 50, 'status': 'สมรส',
+            'district': '', 'province': ''
+        }
+    else:
+        submitter_info = submitter_row.iloc[0]
+
+    # Use generated data (assets/statements) - still mapped 1-23
     generated_id = idx + 1 
     
     assets = test_asset[test_asset['submitter_id'] == generated_id]
@@ -54,46 +88,41 @@ for idx, doc_row in test_doc_info.iterrows():
 
     # สร้าง row ตาม template
     row = {
-        'id': nacc_id,  # Use matches nacc_id pattern from training data
+        'id': nacc_id,
         'doc_id': doc_row['doc_id'],
-        'nd_title': 'นาย',
-        'nd_first_name': f'ทดสอบ {idx+1}',
-        'nd_last_name': 'ระบบ',
-        'nd_position': 'สมาชิกสภาผู้แทนราษฎร (ส.ส.)',
-       'submitted_date': '2023-12-06',
-        'disclosure_announcement_date': '2023-12-06',
-        'disclosure_start_date': '2023-12-06',
-        'disclosure_end_date': '2024-06-06',
-        'date_by_submitted_case': '2023-12-06',
-        'royal_start_date': 'NONE',
-        'agency': 'รัฐสภา',
-        'submitter_id': nacc_id,
-        'submitter_title': 'นาย',
-        'submitter_first_name': f'ทดสอบ {idx+1}',
-        'submitter_last_name': 'ระบบ',
-        'submitter_age': np.random.randint(40, 70),
-        'submitter_marital_status': 'สมรส',
-        'submitter_status_date': 'NONE',
-        'submitter_status_month': 'NONE',
-        'submitter_status_year': 'NONE',
-        'submitter_sub_district': 'เขตทดสอบ',
-        'submitter_district': 'อำเภอทดสอบ',
-        'submitter_province': 'จังหวัดทดสอบ',
-        'submitter_post_code': '10000',
-        'submitter_phone_number': 'NONE',
-        'submitter_mobile_number': 'NONE',
-        'submitter_email': 'NONE',
+        'nd_title': nacc_info.get('title', ''),
+        'nd_first_name': nacc_info.get('first_name', ''),
+        'nd_last_name': nacc_info.get('last_name', ''),
+        'nd_position': nacc_info.get('position', ''),
+        'submitted_date': nacc_info.get('submitted_date', ''),
+        'disclosure_announcement_date': nacc_info.get('disclosure_announcement_date', ''),
+        'disclosure_start_date': nacc_info.get('disclosure_start_date', ''),
+        'disclosure_end_date': nacc_info.get('disclosure_end_date', ''),
+        'date_by_submitted_case': nacc_info.get('date_by_submitted_case', ''),
+        'royal_start_date': nacc_info.get('royal_start_date', 'NONE'),
+        'agency': nacc_info.get('agency', ''),
+        'submitter_id': submitter_id,
+        'submitter_title': submitter_info.get('title', ''),
+        'submitter_first_name': submitter_info.get('first_name', ''),
+        'submitter_last_name': submitter_info.get('last_name', ''),
+        'submitter_age': submitter_info.get('age', ''),
+        'submitter_marital_status': submitter_info.get('status', 'สมรส'),
+        'submitter_status_date': submitter_info.get('status_date', 'NONE'),
+        'submitter_status_month': submitter_info.get('status_month', 'NONE'),
+        'submitter_status_year': submitter_info.get('status_year', 'NONE'),
+        'submitter_sub_district': submitter_info.get('sub_district', 'NONE'),
+        'submitter_district': submitter_info.get('district', 'NONE'),
+        'submitter_province': submitter_info.get('province', 'NONE'),
+        'submitter_post_code': submitter_info.get('post_code', 'NONE'),
+        'submitter_phone_number': submitter_info.get('phone_number', 'NONE'),
+        'submitter_mobile_number': submitter_info.get('mobile_number', 'NONE'),
+        'submitter_email': submitter_info.get('email', 'NONE'),
         
-        # Spouse
-        'spouse_id': nacc_id * 1000 if np.random.random() > 0.3 else 'NONE',
+        # Spouse (Still mock if we don't have spouse info file - usually in relative file?)
+        'spouse_id': submitter_id * 10 if np.random.random() > 0.3 else 'NONE',
         'spouse_title': 'นาง' if np.random.random() > 0.3 else 'NONE',
-        'spouse_first_name': f'คู่สมรส {idx+1}' if np.random.random() > 0.3 else 'NONE',
-        'spouse_last_name': 'ระบบ' if np.random.random() > 0.3 else 'NONE',
-        'spouse_age': np.random.randint(35, 65) if np.random.random() > 0.3 else 'NONE',
-        'spouse_status': 'จดทะเบียนสมรส' if np.random.random() > 0.3 else 'NONE',
-        'spouse_status_date': 'NONE',
-        'spouse_status_month': 'NONE',
-        'spouse_status_year': 'NONE',
+        'spouse_first_name': f'คู่สมรส {submitter_info.get("first_name", "")}' if np.random.random() > 0.3 else 'NONE',
+        'spouse_last_name': submitter_info.get('last_name', ''), # Naming convention assumption
         
         # Statement statistics
         'statement_valuation_submitter_total': float(stmt_sub_sum),
