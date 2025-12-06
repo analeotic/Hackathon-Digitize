@@ -50,8 +50,8 @@ print(f"\n🎲 Generating data for {num_test} test cases...")
 test_assets = []
 asset_id = 1
 for nacc_id in test_nacc_ids:
-    # Assets (Safe Middle Ground: 3-10 items)
-    num_assets = np.random.randint(3, 11)
+    # Assets (Baseline: 1-6 items - Best Score Config)
+    num_assets = np.random.randint(1, 7)
     
     for i in range(num_assets): # Changed k to i to match original variable name
         # Sample from training
