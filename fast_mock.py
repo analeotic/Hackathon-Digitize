@@ -50,18 +50,17 @@ print(f"\n🎲 Generating data for {num_test} test cases...")
 test_assets = []
 asset_id = 1
 for nacc_id in test_nacc_ids:
-    # Sample realistic number
-    num_assets = int(np.random.poisson(assets_per_person))
-    num_assets = max(1, min(num_assets, 30))  # 1-30 assets
+    # Assets (Make it realistic for politicians: 15-40 items)
+    num_assets = np.random.randint(15, 41)
     
-    for i in range(num_assets):
+    for i in range(num_assets): # Changed k to i to match original variable name
         # Sample from training
         if len(train_asset) > 0:
             sample = train_asset.sample(1).iloc[0].to_dict()
             sample['asset_id'] = asset_id
             sample['submitter_id'] = nacc_id
             sample['nacc_id'] = nacc_id
-            sample['index'] = i + 1
+            sample['index'] = i + 1 # Changed k to i to match original variable name
             # Randomize valuation a bit
             if pd.notna(sample.get('valuation')):
                 base_val = sample['valuation']
