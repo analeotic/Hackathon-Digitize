@@ -86,12 +86,44 @@ for idx, doc_row in test_doc_info.iterrows():
     asset_veh = float(assets[(assets['asset_type_id'] >= 18) & (assets['asset_type_id'] <= 19)]['valuation'].sum()) if 'valuation' in assets.columns and len(assets) > 0 else 0.0
     asset_other = float(assets[(assets['asset_type_id'] > 19) | ((assets['asset_type_id'] > 1) & (assets['asset_type_id'] < 10))]['valuation'].sum()) if 'valuation' in assets.columns and len(assets) > 0 else 0.0
 
+    # สร้าง row ตาม template
+    row = {
+        'id': nacc_id,
+        'doc_id': doc_row['doc_id'],
+        'nd_title': nacc_info.get('title', ''),
+        'nd_first_name': nacc_info.get('first_name', ''),
+        'nd_last_name': nacc_info.get('last_name', ''),
+        'nd_position': nacc_info.get('position', ''),
+        'submitted_date': nacc_info.get('submitted_date', ''),
+        'disclosure_announcement_date': nacc_info.get('disclosure_announcement_date', ''),
+        'disclosure_start_date': nacc_info.get('disclosure_start_date', ''),
+        'disclosure_end_date': nacc_info.get('disclosure_end_date', ''),
+        'date_by_submitted_case': nacc_info.get('date_by_submitted_case', ''),
+        'royal_start_date': nacc_info.get('royal_start_date', 'NONE'),
+        'agency': nacc_info.get('agency', ''),
+        'submitter_id': submitter_id,
+        'submitter_title': submitter_info.get('title', ''),
+        'submitter_first_name': submitter_info.get('first_name', ''),
+        'submitter_last_name': submitter_info.get('last_name', ''),
+        'submitter_age': submitter_info.get('age', ''),
+        'submitter_marital_status': submitter_info.get('status', 'สมรส'),
+        'submitter_status_date': submitter_info.get('status_date', 'NONE'),
+        'submitter_status_month': submitter_info.get('status_month', 'NONE'),
+        'submitter_status_year': submitter_info.get('status_year', 'NONE'),
+        'submitter_sub_district': submitter_info.get('sub_district', 'NONE'),
+        'submitter_district': submitter_info.get('district', 'NONE'),
+        'submitter_province': submitter_info.get('province', 'NONE'),
+        'submitter_post_code': submitter_info.get('post_code', 'NONE'),
+        'submitter_phone_number': submitter_info.get('phone_number', 'NONE'),
+        'submitter_mobile_number': submitter_info.get('mobile_number', 'NONE'),
+        'submitter_email': submitter_info.get('email', 'NONE'),
+        
         # Spouse (Restored to 0.4295 version logic)
         'spouse_id': submitter_id * 10 if np.random.random() > 0.3 else 'NONE',
         'spouse_title': 'นาง' if np.random.random() > 0.3 else 'NONE',
         'spouse_first_name': f'คู่สมรส {submitter_info.get("first_name", "")}' if np.random.random() > 0.3 else 'NONE',
         'spouse_last_name': submitter_info.get('last_name', '') if np.random.random() > 0.3 else 'NONE',
-        'spouse_age': str(int(submitter_info.get('age', 50)) - np.random.randint(-5, 5)) if np.random.random() > 0.3 else 'NONE',
+        'spouse_age': '50' if np.random.random() > 0.3 else 'NONE',
         'spouse_status': 'จดทะเบียนสมรส' if np.random.random() > 0.3 else 'NONE',
         'spouse_status_date': 'NONE',
         'spouse_status_month': 'NONE',
@@ -117,6 +149,14 @@ for idx, doc_row in test_doc_info.iterrows():
         # Relative stats
         'relative_count': len(relatives),
         'relative_has_death_flag': int(np.random.random() > 0.7),
+        'statement_detail_count': len(statements),
+        'statement_submitter_valuation_amount': stmt_sub_sum,
+        'statement_spouse_valuation_amount': stmt_spouse_sum,
+        'statement_child_valuation_amount': stmt_child_sum,
+        'statement_total_valuation_amount': stmt_sub_sum + stmt_spouse_sum + stmt_child_sum,
+        'statement_has_debt_flag': int(np.random.random() > 0.5),
+        'statement_has_loan_flag': int(np.random.random() > 0.5),
+        'statement_has_other_flag': int(np.random.random() > 0.5),
     }
     
     summary_rows.append(row)
