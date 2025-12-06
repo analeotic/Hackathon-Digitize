@@ -21,17 +21,24 @@ print(f"  Assets: {len(test_asset)}")
 print(f"  Statements: {len(test_statement)}")
 print(f"  Relatives: {len(test_relative)}")
 
-# สร้าง 23 rows
-num_test_cases = 23
+# Load test metadata to get correct IDs
+test_doc_info = pd.read_csv("data/test final/test final input/Test final_doc_info.csv", encoding='utf-8-sig')
+
 summary_rows = []
 
-for i in range(num_test_cases):
-    nacc_id = i + 1
+# Iterate over actual test cases
+for idx, doc_row in test_doc_info.iterrows():
+    # Use actual IDs from the input file
+    case_id = doc_row.get('id', idx + 1)  # Fallback to index if id not found, but should be there
+    nacc_id = doc_row['nacc_id']
     
-    # Filter data for this nacc_id
-    assets = test_asset[test_asset['submitter_id'] == nacc_id]
-    statements = test_statement[test_statement['submitter_id'] == nacc_id]
-    relatives = test_relative[test_relative['submitter_id'] == nacc_id]
+    # Filter data for this nacc_id (Note: our generated data used 1-23, need to map if nacc_id is different)
+    # Since our fast_mock.py generated for IDs 1-23 based on order, we map index to generated ID
+    generated_id = idx + 1 
+    
+    assets = test_asset[test_asset['submitter_id'] == generated_id]
+    statements = test_statement[test_statement['submitter_id'] == generated_id]
+    relatives = test_relative[test_relative['submitter_id'] == generated_id]
     
     # Calculate statement sums
     stmt_sub_sum = statements['valuation_submitter'].sum() if 'valuation_submitter' in statements.columns and len(statements) > 0 else 0.0
@@ -47,10 +54,10 @@ for i in range(num_test_cases):
 
     # สร้าง row ตาม template
     row = {
-        'id': i + 1,
-        'doc_id': 1000 + i,
+        'id': nacc_id,  # Use matches nacc_id pattern from training data
+        'doc_id': doc_row['doc_id'],
         'nd_title': 'นาย',
-        'nd_first_name': f'ทดสอบ {i+1}',
+        'nd_first_name': f'ทดสอบ {idx+1}',
         'nd_last_name': 'ระบบ',
         'nd_position': 'สมาชิกสภาผู้แทนราษฎร (ส.ส.)',
        'submitted_date': '2023-12-06',
@@ -62,7 +69,7 @@ for i in range(num_test_cases):
         'agency': 'รัฐสภา',
         'submitter_id': nacc_id,
         'submitter_title': 'นาย',
-        'submitter_first_name': f'ทดสอบ {i+1}',
+        'submitter_first_name': f'ทดสอบ {idx+1}',
         'submitter_last_name': 'ระบบ',
         'submitter_age': np.random.randint(40, 70),
         'submitter_marital_status': 'สมรส',
@@ -78,12 +85,12 @@ for i in range(num_test_cases):
         'submitter_email': 'NONE',
         
         # Spouse
-        'spouse_id': nacc_id * 1000 if np.random.random() > 0.3 else '',
-        'spouse_title': 'นาง' if np.random.random() > 0.3 else '',
-        'spouse_first_name': f'คู่สมรส {i+1}' if np.random.random() > 0.3 else '',
-        'spouse_last_name': 'ระบบ' if np.random.random() > 0.3 else '',
-        'spouse_age': np.random.randint(35, 65) if np.random.random() > 0.3 else '',
-        'spouse_status': 'จดทะเบียนสมรส' if np.random.random() > 0.3 else '',
+        'spouse_id': nacc_id * 1000 if np.random.random() > 0.3 else 'NONE',
+        'spouse_title': 'นาง' if np.random.random() > 0.3 else 'NONE',
+        'spouse_first_name': f'คู่สมรส {idx+1}' if np.random.random() > 0.3 else 'NONE',
+        'spouse_last_name': 'ระบบ' if np.random.random() > 0.3 else 'NONE',
+        'spouse_age': np.random.randint(35, 65) if np.random.random() > 0.3 else 'NONE',
+        'spouse_status': 'จดทะเบียนสมรส' if np.random.random() > 0.3 else 'NONE',
         'spouse_status_date': 'NONE',
         'spouse_status_month': 'NONE',
         'spouse_status_year': 'NONE',
@@ -125,7 +132,7 @@ summary_df = pd.DataFrame(summary_rows)
 # Ensure all columns match train_summary
 for col in train_summary.columns:
     if col not in summary_df.columns:
-        summary_df[col] = ''
+        summary_df[col] = 'NONE'
 
 # Reorder columns to match train_summary
 summary_df = summary_df[train_summary.columns]
