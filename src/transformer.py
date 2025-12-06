@@ -1,0 +1,431 @@
+"""
+Data Transformer - Convert extracted JSON to 13 CSV files
+"""
+import pandas as pd
+from pathlib import Path
+from typing import Dict, List
+from datetime import datetime
+import re
+
+
+class DataTransformer:
+    """Transform extracted JSON data into database-compatible CSV files"""
+    
+    def __init__(self, output_dir: Path):
+        """Initialize transformer with output directory"""
+        self.output_dir = Path(output_dir)
+        self.output_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Initialize dataframes for all 13 CSV files
+        self.dfs = {
+            "submitter_old_name": pd.DataFrame(),
+            "submitter_position": pd.DataFrame(),
+            "spouse_info": pd.DataFrame(),
+            "spouse_old_name": pd.DataFrame(),
+            "spouse_position": pd.DataFrame(),
+            "relative_info": pd.DataFrame(),
+            "statement": pd.DataFrame(),
+            "statement_detail": pd.DataFrame(),
+            "asset": pd.DataFrame(),
+            "asset_building_info": pd.DataFrame(),
+            "asset_land_info": pd.DataFrame(),
+            "asset_vehicle_info": pd.DataFrame(),
+            "asset_other_asset_info": pd.DataFrame(),
+        }
+    
+    def transform_document(self, extracted_data: Dict, doc_id: int, submitter_id: int, nacc_id: int):
+        """Transform one document's extracted data and append to dataframes"""
+        
+        # Transform submitter data
+        if "submitter" in extracted_data:
+            self._transform_submitter_old_names(
+                extracted_data["submitter"].get("old_names", []), 
+                submitter_id
+            )
+            self._transform_submitter_positions(
+                extracted_data["submitter"].get("positions", []), 
+                submitter_id
+            )
+        
+        # Transform spouse data
+        if "spouse" in extracted_data:
+            spouse_data = extracted_data["spouse"]
+            if "info" in spouse_data and spouse_data["info"]:
+                self._transform_spouse_info(spouse_data["info"], submitter_id)
+                spouse_id = spouse_data["info"].get("spouse_id", submitter_id * 1000)
+                
+                self._transform_spouse_old_names(
+                    spouse_data.get("old_names", []), 
+                    spouse_id
+                )
+                self._transform_spouse_positions(
+                    spouse_data.get("positions", []), 
+                    spouse_id
+                )
+        
+        # Transform relatives
+        if "relatives" in extracted_data:
+            self._transform_relatives(extracted_data["relatives"], submitter_id)
+        
+        # Transform statements
+        if "statements" in extracted_data:
+            self._transform_statements(extracted_data["statements"], submitter_id, nacc_id)
+        
+        # Transform statement details
+        if "statement_details" in extracted_data:
+            self._transform_statement_details(extracted_data["statement_details"])
+        
+        # Transform assets
+        if "assets" in extracted_data:
+            self._transform_assets(extracted_data["assets"], submitter_id, nacc_id)
+            
+            # Transform asset details
+            if "asset_land_info" in extracted_data:
+                self._transform_asset_land(extracted_data["asset_land_info"])
+            
+            if "asset_building_info" in extracted_data:
+                self._transform_asset_building(extracted_data["asset_building_info"])
+            
+            if "asset_vehicle_info" in extracted_data:
+                self._transform_asset_vehicle(extracted_data["asset_vehicle_info"])
+            
+            if "asset_other_info" in extracted_data:
+                self._transform_asset_other(extracted_data["asset_other_info"])
+    
+    def _transform_submitter_old_names(self, old_names: List[Dict], submitter_id: int):
+        """Transform submitter old names"""
+        if not old_names:
+            return
+        
+        for name in old_names:
+            row = {
+                "submitter_id": submitter_id,
+                "old_first_name": name.get("old_first_name", ""),
+                "old_last_name": name.get("old_last_name", ""),
+                "change_date": name.get("change_date"),
+                "change_month": name.get("change_month"),
+                "change_year": name.get("change_year"),
+            }
+            self.dfs["submitter_old_name"] = pd.concat([
+                self.dfs["submitter_old_name"], 
+                pd.DataFrame([row])
+            ], ignore_index=True)
+    
+    def _transform_submitter_positions(self, positions: List[Dict], submitter_id: int):
+        """Transform submitter positions"""
+        if not positions:
+            return
+        
+        for pos in positions:
+            row = {
+                "submitter_id": submitter_id,
+                "position_period_type_id": pos.get("position_period_type_id"),
+                "position_category_type_id": pos.get("position_category_type_id"),
+                "position_start_date": pos.get("position_start_date"),
+                "position_start_month": pos.get("position_start_month"),
+                "position_start_year": pos.get("position_start_year"),
+                "position_end_date": pos.get("position_end_date"),
+                "position_end_month": pos.get("position_end_month"),
+                "position_end_year": pos.get("position_end_year"),
+                "position_title": pos.get("position_title", ""),
+                "position_agency": pos.get("position_agency", ""),
+            }
+            self.dfs["submitter_position"] = pd.concat([
+                self.dfs["submitter_position"],
+                pd.DataFrame([row])
+            ], ignore_index=True)
+    
+    def _transform_spouse_info(self, spouse_info: Dict, submitter_id: int):
+        """Transform spouse information"""
+        if not spouse_info:
+            return
+        
+        row = {
+            "spouse_id": spouse_info.get("spouse_id", submitter_id * 1000),
+            "submitter_id": submitter_id,
+            "title": spouse_info.get("title", ""),
+            "first_name": spouse_info.get("first_name", ""),
+            "last_name": spouse_info.get("last_name", ""),
+            "title_en": spouse_info.get("title_en", ""),
+            "first_name_en": spouse_info.get("first_name_en", ""),
+            "last_name_en": spouse_info.get("last_name_en", ""),
+            "id_card_number": spouse_info.get("id_card_number", ""),
+            "age": spouse_info.get("age"),
+            "occupation": spouse_info.get("occupation", ""),
+            "office_name": spouse_info.get("office_name", ""),
+            "marriage_date": spouse_info.get("marriage_date"),
+            "marriage_month": spouse_info.get("marriage_month"),
+            "marriage_year": spouse_info.get("marriage_year"),
+        }
+        self.dfs["spouse_info"] = pd.concat([
+            self.dfs["spouse_info"],
+            pd.DataFrame([row])
+        ], ignore_index=True)
+    
+    def _transform_spouse_old_names(self, old_names: List[Dict], spouse_id: int):
+        """Transform spouse old names"""
+        if not old_names:
+            return
+        
+        for name in old_names:
+            row = {
+                "spouse_id": spouse_id,
+                "old_first_name": name.get("old_first_name", ""),
+                "old_last_name": name.get("old_last_name", ""),
+                "change_date": name.get("change_date"),
+                "change_month": name.get("change_month"),
+                "change_year": name.get("change_year"),
+            }
+            self.dfs["spouse_old_name"] = pd.concat([
+                self.dfs["spouse_old_name"],
+                pd.DataFrame([row])
+            ], ignore_index=True)
+    
+    def _transform_spouse_positions(self, positions: List[Dict], spouse_id: int):
+        """Transform spouse positions"""
+        if not positions:
+            return
+        
+        for pos in positions:
+            row = {
+                "spouse_id": spouse_id,
+                "position_period_type_id": pos.get("position_period_type_id"),
+                "position_category_type_id": pos.get("position_category_type_id"),
+                "position_start_date": pos.get("position_start_date"),
+                "position_start_month": pos.get("position_start_month"),
+                "position_start_year": pos.get("position_start_year"),
+                "position_end_date": pos.get("position_end_date"),
+                "position_end_month": pos.get("position_end_month"),
+                "position_end_year": pos.get("position_end_year"),
+                "position_title": pos.get("position_title", ""),
+                "position_agency": pos.get("position_agency", ""),
+            }
+            self.dfs["spouse_position"] = pd.concat([
+                self.dfs["spouse_position"],
+                pd.DataFrame([row])
+            ], ignore_index=True)
+    
+    def _transform_relatives(self, relatives: List[Dict], submitter_id: int):
+        """Transform relatives information"""
+        if not relatives:
+            return
+        
+        for rel in relatives:
+            row = {
+                "relative_id": rel.get("relative_id"),
+                "submitter_id": submitter_id,
+                "relationship_id": rel.get("relationship_id"),
+                "title": rel.get("title", ""),
+                "first_name": rel.get("first_name", ""),
+                "last_name": rel.get("last_name", ""),
+                "age": rel.get("age"),
+                "occupation": rel.get("occupation", ""),
+                "office_name": rel.get("office_name", ""),
+            }
+            self.dfs["relative_info"] = pd.concat([
+                self.dfs["relative_info"],
+                pd.DataFrame([row])
+            ], ignore_index=True)
+    
+    def _transform_statements(self, statements: List[Dict], submitter_id: int, nacc_id: int):
+        """Transform statements"""
+        if not statements:
+            return
+        
+        for stmt in statements:
+            row = {
+                "statement_id": stmt.get("statement_id"),
+                "submitter_id": submitter_id,
+                "nacc_id": nacc_id,
+                "statement_type_id": stmt.get("statement_type_id"),
+                "owner_by_submitter": stmt.get("owner_by_submitter", False),
+                "owner_by_spouse": stmt.get("owner_by_spouse", False),
+                "owner_by_child": stmt.get("owner_by_child", False),
+                "statement_number": stmt.get("statement_number"),
+                "valuation": stmt.get("valuation"),
+            }
+            self.dfs["statement"] = pd.concat([
+                self.dfs["statement"],
+                pd.DataFrame([row])
+            ], ignore_index=True)
+    
+    def _transform_statement_details(self, details: List[Dict]):
+        """Transform statement details"""
+        if not details:
+            return
+        
+        for detail in details:
+            row = {
+                "statement_detail_id": detail.get("statement_detail_id"),
+                "statement_id": detail.get("statement_id"),
+                "statement_detail_type_id": detail.get("statement_detail_type_id"),
+                "statement_detail_name": detail.get("statement_detail_name", ""),
+                "valuation": detail.get("valuation"),
+            }
+            self.dfs["statement_detail"] = pd.concat([
+                self.dfs["statement_detail"],
+                pd.DataFrame([row])
+            ], ignore_index=True)
+    
+    def _transform_assets(self, assets: List[Dict], submitter_id: int, nacc_id: int):
+        """Transform assets"""
+        if not assets:
+            return
+        
+        for asset in assets:
+            # Convert boolean strings to proper format
+            owner_sub = asset.get("owner_by_submitter", False)
+            owner_spouse = asset.get("owner_by_spouse", False)
+            owner_child = asset.get("owner_by_child", False)
+            
+            if isinstance(owner_sub, str):
+                owner_sub = owner_sub.upper() == "TRUE"
+            if isinstance(owner_spouse, str):
+                owner_spouse = owner_spouse.upper() == "TRUE"
+            if isinstance(owner_child, str):
+                owner_child = owner_child.upper() == "TRUE"
+            
+            row = {
+                "asset_id": asset.get("asset_id"),
+                "submitter_id": submitter_id,
+                "nacc_id": nacc_id,
+                "index": asset.get("index"),
+                "asset_type_id": asset.get("asset_type_id"),
+                "asset_type_other": asset.get("asset_type_other", ""),
+                "asset_name": asset.get("asset_name", ""),
+                "date_acquiring_type_id": asset.get("date_acquiring_type_id"),
+                "acquiring_date": asset.get("acquiring_date"),
+                "acquiring_month": asset.get("acquiring_month"),
+                "acquiring_year": asset.get("acquiring_year"),
+                "date_ending_type_id": asset.get("date_ending_type_id"),
+                "ending_date": asset.get("ending_date"),
+                "ending_month": asset.get("ending_month"),
+                "ending_year": asset.get("ending_year"),
+                "asset_acquisition_type_id": asset.get("asset_acquisition_type_id"),
+                "valuation": asset.get("valuation"),
+                "owner_by_submitter": owner_sub,
+                "owner_by_spouse": owner_spouse,
+                "owner_by_child": owner_child,
+                "latest_submitted_date": asset.get("latest_submitted_date", ""),
+            }
+            self.dfs["asset"] = pd.concat([
+                self.dfs["asset"],
+                pd.DataFrame([row])
+            ], ignore_index=True)
+    
+    def _transform_asset_land(self, land_info: List[Dict]):
+        """Transform land asset information"""
+        if not land_info:
+            return
+        
+        for land in land_info:
+            row = {
+                "asset_land_id": land.get("asset_land_id"),
+                "asset_id": land.get("asset_id"),
+                "title_deed_number": land.get("title_deed_number", ""),
+                "land_parcel_number": land.get("land_parcel_number", ""),
+                "survey_page_number": land.get("survey_page_number", ""),
+                "sub_district": land.get("sub_district", ""),
+                "district": land.get("district", ""),
+                "province": land.get("province", ""),
+                "right_area_rai": land.get("right_area_rai"),
+                "right_area_ngan": land.get("right_area_ngan"),
+                "right_area_wa": land.get("right_area_wa"),
+            }
+            self.dfs["asset_land_info"] = pd.concat([
+                self.dfs["asset_land_info"],
+                pd.DataFrame([row])
+            ], ignore_index=True)
+    
+    def _transform_asset_building(self, building_info: List[Dict]):
+        """Transform building asset information"""
+        if not building_info:
+            return
+        
+        for building in building_info:
+            row = {
+                "asset_building_id": building.get("asset_building_id"),
+                "asset_id": building.get("asset_id"),
+                "building_type": building.get("building_type", ""),
+                "house_number": building.get("house_number", ""),
+                "sub_district": building.get("sub_district", ""),
+                "district": building.get("district", ""),
+                "province": building.get("province", ""),
+            }
+            self.dfs["asset_building_info"] = pd.concat([
+                self.dfs["asset_building_info"],
+                pd.DataFrame([row])
+            ], ignore_index=True)
+    
+    def _transform_asset_vehicle(self, vehicle_info: List[Dict]):
+        """Transform vehicle asset information"""
+        if not vehicle_info:
+            return
+        
+        for vehicle in vehicle_info:
+            row = {
+                "asset_vehicle_id": vehicle.get("asset_vehicle_id"),
+                "asset_id": vehicle.get("asset_id"),
+                "vehicle_brand": vehicle.get("vehicle_brand", ""),
+                "vehicle_model": vehicle.get("vehicle_model", ""),
+                "vehicle_year": vehicle.get("vehicle_year"),
+                "vehicle_color": vehicle.get("vehicle_color", ""),
+                "license_plate_number": vehicle.get("license_plate_number", ""),
+                "license_plate_province": vehicle.get("license_plate_province", ""),
+                "engine_number": vehicle.get("engine_number", ""),
+                "chassis_number": vehicle.get("chassis_number", ""),
+            }
+            self.dfs["asset_vehicle_info"] = pd.concat([
+                self.dfs["asset_vehicle_info"],
+                pd.DataFrame([row])
+            ], ignore_index=True)
+    
+    def _transform_asset_other(self, other_info: List[Dict]):
+        """Transform other asset information"""
+        if not other_info:
+            return
+        
+        for other in other_info:
+            row = {
+                "asset_other_id": other.get("asset_other_id"),
+                "asset_id": other.get("asset_id"),
+                "other_asset_description": other.get("other_asset_description", ""),
+            }
+            self.dfs["asset_other_asset_info"] = pd.concat([
+                self.dfs["asset_other_asset_info"],
+                pd.DataFrame([row])
+            ], ignore_index=True)
+    
+    def save_all_csvs(self, prefix: str = ""):
+        """Save all dataframes to CSV files"""
+        csv_mapping = {
+            "submitter_old_name": "submitter_old_name.csv",
+            "submitter_position": "submitter_position.csv",
+            "spouse_info": "spouse_info.csv",
+            "spouse_old_name": "spouse_old_name.csv",
+            "spouse_position": "spouse_position.csv",
+            "relative_info": "relative_info.csv",
+            "statement": "statement.csv",
+            "statement_detail": "statement_detail.csv",
+            "asset": "asset.csv",
+            "asset_building_info": "asset_building_info.csv",
+            "asset_land_info": "asset_land_info.csv",
+            "asset_vehicle_info": "asset_vehicle_info.csv",
+            "asset_other_asset_info": "asset_other_asset_info.csv",
+        }
+        
+        saved_files = []
+        for key, filename in csv_mapping.items():
+            output_path = self.output_dir / f"{prefix}{filename}" if prefix else self.output_dir / filename
+            
+            if not self.dfs[key].empty:
+                self.dfs[key].to_csv(output_path, index=False, encoding='utf-8-sig')
+                saved_files.append(output_path)
+                print(f"✓ Saved {output_path} ({len(self.dfs[key])} rows)")
+            else:
+                # Create empty file with headers
+                pd.DataFrame().to_csv(output_path, index=False)
+                saved_files.append(output_path)
+                print(f"○ Created empty {output_path}")
+        
+        return saved_files
