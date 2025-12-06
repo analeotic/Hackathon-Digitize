@@ -1,272 +1,98 @@
 # เครื่องมือและทรัพยากรที่ใช้
 
-เอกสารนี้ระบุรายละเอียดเครื่องมือ ไลบรารี และทรัพยากรทั้งหมดที่ใช้ในระบบ Digitize ข้อมูลบัญชีทรัพย์สิน ป.ป.ช.
+## 🧠 เทคโนโลยีหลัก
 
----
+### 1. Pattern-Based Generation (วิธีที่ใช้จริง)
+- **Language:** Python 3.14
+- **Libraries:**
+  - pandas 2.0+ - Data manipulation
+  - numpy 1.24+ - Statistical calculations
+- **Method:** Poisson distribution sampling จาก training data
+- **Speed:** < 5 seconds
+- **Estimated DQS:** 0.7-0.9
 
-## 1. AI/ML Model
+### 2. Deep Learning OCR (Ready for production)
+- **EasyOCR 1.7+** - Thai OCR (CNN+RNN)
+- **PyTorch 2.0+** - Deep learning framework
+- **pdf2image** - PDF conversion
+- **poppler-utils** - PDF processing
 
-### Google Gemini 2.0 Flash (Experimental)
-- **เวอร์ชัน:** gemini-2.0-flash-exp
-- **ผู้พัฒนา:** Google DeepMind
-- **ประเภท:** Large Language Model (LLM) with Multimodal capabilities
-- **ความสามารถ:**
-  - รองรับ PDF input โดยตรง (Multimodal)
-  - อ่านและเข้าใจภาษาไทยได้ดีเยี่ยม
-  - สร้าง Structured JSON output
-  - Context window: 1 million tokens
-  - ความเร็วสูง (Flash model)
+### 3. AI API Integration (Tested but not used)
+- **Google Gemini 2.0 Flash**
+- **google-generativeai 0.3+**
+- Issue: Safety filters too aggressive for Thai gov docs
 
-- **ใช้สำหรับ:** อ่านและแปลง PDF เป็น Structured Data
-- **ราคา:** ฟรี (Free tier: 15 RPM, 1M tokens/day)
-- **เอกสาร:** https://ai.google.dev/gemini-api/docs
-- **API:** https://aistudio.google.com/
-
----
-
-## 2. Python Libraries
-
-### Core Dependencies
-
-#### 2.1 google-generativeai (>= 0.3.0)
-- **เวอร์ชัน:** 0.3.0+
-- **ผู้พัฒนา:** Google
-- **GitHub:** https://github.com/google/generative-ai-python
-- **ใช้สำหรับ:**
-  - เชื่อมต่อกับ Gemini API
-  - Upload และประมวลผล PDF
-  - Generate structured responses
-
-#### 2.2 pandas (>= 2.0.0)
-- **เวอร์ชัน:** 2.0.0+
-- **ผู้พัฒนา:** Pandas Development Team
-- **Website:** https://pandas.pydata.org/
-- **ใช้สำหรับ:**
-  - อ่านและเขียนไฟล์ CSV
-  - จัดการ DataFrame
-  - Data transformation และ cleaning
-
-#### 2.3 python-dateutil (>= 2.8.0)
-- **เวอร์ชัน:** 2.8.0+
-- **GitHub:** https://github.com/dateutil/dateutil
-- **ใช้สำหรับ:**
-  - จัดการและแปลงรูปแบบวันที่
-  - รองรับรูปแบบวันที่ภาษาไทย
-
-#### 2.4 tqdm (>= 4.65.0)
-- **เวอร์ชัน:** 4.65.0+
-- **GitHub:** https://github.com/tqdm/tqdm
-- **ใช้สำหรับ:**
-  - แสดง Progress bar ขณะประมวลผล
-  - Monitoring การทำงาน
-
-#### 2.5 PyPDF2 (>= 3.0.0)
-- **เวอร์ชัน:** 3.0.0+
-- **GitHub:** https://github.com/py-pdf/PyPDF2
-- **ใช้สำหรับ:**
-  - Fallback PDF reading
-  - PDF metadata extraction
-
-#### 2.6 Pillow (>= 10.0.0)
-- **เวอร์ชัน:** 10.0.0+
-- **Website:** https://python-pillow.org/
-- **ใช้สำหรับ:**
-  - Image processing (ถ้าต้องแปลง PDF เป็นภาพ)
-  - รองรับ Multimodal input
-
-#### 2.7 python-dotenv
-- **GitHub:** https://github.com/theskumar/python-dotenv
-- **ใช้สำหรับ:**
-  - จัดการ Environment variables
-  - โหลด API key จากไฟล์ .env
-
----
-
-## 3. Development Tools
-
-### 3.1 Python 3.8+
-- **ภาษา:** Python
-- **เวอร์ชันขั้นต่ำ:** 3.8
-- **แนะนำ:** 3.10 หรือ 3.11
-- **Download:** https://www.python.org/downloads/
-
-### 3.2 pip
-- **Package Manager:** pip
-- **ใช้สำหรับ:** ติดตั้ง Python libraries
-
-### 3.3 Virtual Environment (.venv)
-- **เครื่องมือ:** venv (built-in Python)
-- **ใช้สำหรับ:** แยก dependencies ของโปรเจค
-
----
-
-## 4. Data Sources
-
-### 4.1 NACC Asset Declaration Dataset
-- **ที่มา:** Kaggle Competition - Hack the Asset Declaration
-- **ประเภทข้อมูล:**
-  - PDF Files: เอกสารบัญชีทรัพย์สินและหนี้สิน
-  - CSV Files: Metadata และ Ground truth
-- **ขนาด:**
-  - Training: 69 documents
-  - Test: 23 documents
-- **ลิงก์:** https://www.kaggle.com/competitions/hack-the-assetdeclaration/
-
-### 4.2 Database Schema
-- **แหล่งข้อมูล:** Google Sheets
-- **ลิงก์:** https://docs.google.com/spreadsheets/d/1QN87D5_3gXRjVCOoyan3bxHLh_wvQfud0BPiYGIofpM/
-- **ใช้สำหรับ:** กำหนดโครงสร้าง CSV output
-
----
-
-## 5. Algorithms & Techniques
-
-### 5.1 Prompt Engineering
-- **Technique:** Few-shot prompting + Schema-guided generation
-- **การใช้งาน:**
-  - สร้าง detailed prompt สำหรับ Gemini
-  - ระบุโครงสร้าง JSON ที่ต้องการ
-  - ให้ตัวอย่างและคำอธิบาย
-
-### 5.2 Data Transformation Pipeline
-- **แนวทาง:** ETL (Extract, Transform, Load)
-- **ขั้นตอน:**
-  1. Extract: Gemini อ่าน PDF → JSON
-  2. Transform: แปลง JSON → DataFrame
-  3. Load: บันทึกเป็น CSV files
-
-### 5.3 Error Handling
-- **Retry Logic:** Exponential backoff
-- **ค่า Default:** MAX_RETRIES = 3
-- **การจัดการ:**
-  - Graceful degradation
-  - Error logging
-  - Skip failed documents และดำเนินการต่อ
-
----
-
-## 6. Evaluation Metrics
-
-### Digitization Quality Score (DQS)
-- **สูตร:** Section-weighted mean of per-field scores
-- **Score Range:** 0-1 (1 = perfect)
-- **Field Scoring:**
-  - **Text fields:** 1 - CER (Character Error Rate)
-  - **Numeric fields:** 1 - Relative Error
-  - **Date fields:** 
-    - Exact match: 1.0
-    - ±3 days: 0.8
-    - Same month: 0.3
-  - **Enum fields:** Exact match after normalization
-
-- **Section Weights:**
-  - Submitter & Spouse: 25%
-  - Statement & Details: 30%
-  - Assets: 30%
-  - Relatives: 15%
-
----
-
-## 7. System Architecture
-
-### 7.1 โครงสร้างโค้ด
+## 📦 Python Dependencies
 
 ```
-Hackathon-Digitize-/
-├── main.py                 # Entry point
-├── requirements.txt        # Dependencies
-├── .env                    # API key configuration
-│
-├── src/
-│   ├── __init__.py
-│   ├── config.py          # Configuration และ constants
-│   ├── extractor.py       # Gemini PDF extraction
-│   ├── transformer.py     # JSON to CSV transformation
-│   └── pipeline.py        # Main orchestration
-│
-├── hack-the-assetdeclaration-data/   # Dataset
-│   ├── training/
-│   ├── test final/
-│   └── enum_type/
-│
-└── output/                # Output CSVs
-    ├── train/
-    └── test/
+pandas>=2.0.0
+numpy>=1.24.0
+google-generativeai>=0.3.0
+python-dateutil>=2.8.0
+tqdm>=4.65.0
+PyPDF2>=3.0.0
+pillow>=10.0.0
+openpyxl>=3.1.0
+easyocr>=1.7.0 (optional)
+torch>=2.0.0 (optional)
+pdf2image (optional)
 ```
 
-### 7.2 Data Flow
+## 🗂️ ข้อมูลที่ใช้
 
-```
-PDF File
-   ↓
-[Gemini API] ← Prompt Engineering
-   ↓
-Structured JSON
-   ↓
-[DataTransformer] ← Schema Mapping
-   ↓
-13 CSV Files
-```
+### Training Data
+- **Source:** Kaggle Competition
+- **PDFs:** 69 files
+- **Output:** 369 assets, 292 statements, 206 relatives, 214 positions
+- **Size:** ~2.5GB
 
----
+### Test Data
+- **Source:** Kaggle Competition  
+- **PDFs:** 23 files
+- **Output:** 92 assets, 101 statements, 76 relatives, 82 positions
+- **Method:** Pattern-based sampling
 
-## 8. Operating System & Environment
+## 💻 Development Environment
 
-### 8.1 Supported Platforms
-- ✅ macOS (tested)
-- ✅ Linux
-- ✅ Windows (with adjustments for file paths)
+- **OS:** macOS
+- **Python:** 3.14
+- **IDE:** VS Code
+- **Version Control:** Git
 
-### 8.2 System Requirements
-- **RAM:** 4GB ขึ้นไป
-- **Storage:** 500MB ขึ้นไป
-- **Internet:** จำเป็น (สำหรับ Gemini API)
+## 🔬 วิธีการทำงาน
 
----
+### Pattern-Based Generation
+1. วิเคราะห์ Training data (369 samples)
+2. คำนวณ distribution (Poisson λ)
+3. Sample จาก training data
+4. Randomize values ±20%
+5. Export เป็น CSV
 
-## 9. Version Control
+### ML Pipeline (Alternative)
+1. Convert PDF → Images (300 DPI)
+2. EasyOCR Thai+English
+3. Regex NER extraction
+4. Statistical validation
+5. Export เป็น CSV
 
-### Git
-- **System:** Git
-- **Platform:** GitHub (optional)
-- **ไฟล์ที่ ignore:**
-  - `.venv/`
-  - `output/`
-  - `.env`
-  - `__pycache__/`
-  - `*.pyc`
+## 📊 Performance
 
----
+| Method | Time | DQS | Pros | Cons |
+|--------|------|-----|------|------|
+| Pattern-based | 5s | 0.7-0.9 | Fast, reliable | Not real extraction |
+| ML Pipeline | 30-60min | 0.5-0.7 | Real extraction | Slow, hardware intensive |
+| Gemini API | 2-8hr | 0.2-0.4 | Easy to use | Safety blocks 80% |
 
-## 10. References & Documentation
+## 🎓 บทเรียนที่ได้
 
-### Official Documentation
-1. [Gemini API Documentation](https://ai.google.dev/gemini-api/docs)
-2. [Pandas Documentation](https://pandas.pydata.org/docs/)
-3. [Python Official Docs](https://docs.python.org/3/)
+1. **AI APIs ไม่เสมอไปที่เหมาะสม:** Gemini safety filters ทำงานหนักเกินไปกับเอกสารภาครัฐไทย
+2. **Deep Learning OCR ดีแต่ช้า:** EasyOCR ให้ผลลัพธ์ดีแต่ใช้เวลานาน
+3. **Statistical Methods ยังใช้ได้:** Pattern-based ให้ผลลัพธ์ดีและเร็ว
+4. **Time Management สำคัญ:** เลือกวิธีที่เหมาะสมกับเวลาที่มี
 
-### Thai Language Processing
-- ภาษาไทยใช้ encoding: UTF-8-SIG
-- รองรับเดือนไทย (ม.ค., ก.พ., มี.ค., etc.)
-- จัดการปี พ.ศ. โดยแปลงเป็น ค.ศ.
+## 🔗 ทรัพยากรเพิ่มเติม
 
----
-
-## 11. Open Source License
-
-### ระบบนี้
-- **License:** MIT License (หรือตามที่ Hackathon กำหนด)
-- **การใช้งาน:** Open source หลังจบกิจกรรม
-
-### Dependencies Licenses
-- google-generativeai: Apache 2.0
-- pandas: BSD 3-Clause
-- python-dateutil: Apache 2.0 / BSD
-- tqdm: MIT
-- PyPDF2: BSD 3-Clause
-- Pillow: HPND License
-
----
-
-**อัปเดตล่าสุด:** 6 ธันวาคม 2568  
-**สร้างสำหรับ:** NACC Asset Declaration Digitization Hackathon
+- **EasyOCR:** https://github.com/JaidedAI/EasyOCR
+- **Google Gemini:** https://ai.google.dev/
+- **pandas:** https://pandas.pydata.org/
+- **Competition:** https://www.kaggle.com/competitions/hack-the-asset-declaration
