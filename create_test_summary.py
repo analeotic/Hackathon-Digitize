@@ -166,6 +166,23 @@ for col in train_summary.columns:
 # Reorder columns to match train_summary
 summary_df = summary_df[train_summary.columns]
 
+# Fill NaN values for specific columns
+summary_df['submitter_age'] = summary_df['submitter_age'].fillna('0')
+summary_df['submitter_post_code'] = summary_df['submitter_post_code'].fillna('NONE')
+
+# Fill all remaining NaNs with 'NONE'
+summary_df = summary_df.fillna('NONE')
+
+# Convert age to int if possible, else string
+def sanitize_age(val):
+    try:
+        if val == 'NONE' or val == '': return '0'
+        return str(int(float(val)))
+    except:
+        return '0'
+
+summary_df['submitter_age'] = summary_df['submitter_age'].apply(sanitize_age)
+
 # Save
 output_path = "output/test/Test_summary.csv"
 summary_df.to_csv(output_path, index=False, encoding='utf-8-sig')
