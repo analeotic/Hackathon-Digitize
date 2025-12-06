@@ -76,10 +76,10 @@ for i in range(num_test_cases):
         'spouse_status_month': 'NONE',
         'spouse_status_year': 'NONE',
         
-        # Statement statistics
-        'statement_valuation_submitter_total': float(statements[statements['owner_by_submitter'] == True]['valuation'].sum()) if len(statements) > 0 else 0.0,
-        'statement_valuation_spouse_total': float(statements[statements['owner_by_spouse'] == True]['valuation'].sum()) if len(statements) > 0 else 0.0,
-        'statement_valuation_child_total': float(statements[statements['owner_by_child'] == True]['valuation'].sum()) if len(statements) > 0 else 0.0,
+        # Statement statistics (mock data doesn't have owner_by columns)
+        'statement_valuation_submitter_total': float(statements['valuation'].sum() * 0.6) if len(statements) > 0 else 0.0,
+        'statement_valuation_spouse_total': float(statements['valuation'].sum() * 0.3) if len(statements) > 0 else 0.0,
+        'statement_valuation_child_total': float(statements['valuation'].sum() * 0.1) if len(statements) > 0 else 0.0,
         'statement_detail_count': len(statements),
         'has_statement_detail_note': int(np.random.random() > 0.8),
         
@@ -90,15 +90,15 @@ for i in range(num_test_cases):
         'asset_vehicle_count': int(len(assets[(assets['asset_type_id'] >= 18) & (assets['asset_type_id'] <= 19)])) if len(assets) > 0 else 0,
         'asset_other_count': int(len(assets[(assets['asset_type_id'] > 19) | ((assets['asset_type_id'] > 1) & (assets['asset_type_id'] < 10))])) if len(assets) > 0 else 0,
         
-        # Asset valuations
+        # Asset valuations (mock data doesn't have owner_by columns)
         'asset_total_valuation_amount': float(assets['valuation'].sum()) if len(assets) > 0 else 0.0,
         'asset_land_valuation_amount': float(assets[assets['asset_type_id'] == 1]['valuation'].sum()) if len(assets) > 0 else 0.0,
         'asset_building_valuation_amount': float(assets[(assets['asset_type_id'] >= 10) & (assets['asset_type_id'] <= 13)]['valuation'].sum()) if len(assets) > 0 else 0.0,
         'asset_vehicle_valuation_amount': float(assets[(assets['asset_type_id'] >= 18) & (assets['asset_type_id'] <= 19)]['valuation'].sum()) if len(assets) > 0 else 0.0,
         'asset_other_asset_valuation_amount': float(assets[(assets['asset_type_id'] > 19) | ((assets['asset_type_id'] > 1) & (assets['asset_type_id'] < 10))]['valuation'].sum()) if len(assets) > 0 else 0.0,
-        'asset_valuation_submitter_amount': float(assets[assets['owner_by_submitter'] == True]['valuation'].sum()) if len(assets) > 0 else 0.0,
-        'asset_valuation_spouse_amount': float(assets[assets['owner_by_spouse'] == True]['valuation'].sum()) if len(assets) > 0 else 0.0,
-        'asset_valuation_child_amount': float(assets[assets['owner_by_child'] == True]['valuation'].sum()) if len(assets) > 0 else 0.0,
+        'asset_valuation_submitter_amount': float(assets['valuation'].sum() * 0.5) if len(assets) > 0 else 0.0,
+        'asset_valuation_spouse_amount': float(assets['valuation'].sum() * 0.3) if len(assets) > 0 else 0.0,
+        'asset_valuation_child_amount': float(assets['valuation'].sum() * 0.2) if len(assets) > 0 else 0.0,
         
         # Relative stats
         'relative_count': len(relatives),
