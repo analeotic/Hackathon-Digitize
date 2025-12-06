@@ -86,6 +86,32 @@ for idx, doc_row in test_doc_info.iterrows():
     asset_veh = float(assets[(assets['asset_type_id'] >= 18) & (assets['asset_type_id'] <= 19)]['valuation'].sum()) if 'valuation' in assets.columns and len(assets) > 0 else 0.0
     asset_other = float(assets[(assets['asset_type_id'] > 19) | ((assets['asset_type_id'] > 1) & (assets['asset_type_id'] < 10))]['valuation'].sum()) if 'valuation' in assets.columns and len(assets) > 0 else 0.0
 
+    # Spouse Logic (Based on Marital Status Consistency)
+    marital_status = submitter_info.get('status', 'สมรส')
+    has_spouse = 'สมรส' in str(marital_status) or 'อยู่กิน' in str(marital_status)
+    
+    if has_spouse:
+        spouse_id_val = str(int(submitter_id * 10 + np.random.randint(1,9)))
+        spouse_title_val = 'นาง' if 'นาย' in submitter_info.get('title', '') else 'นาย'
+        # Fake spouse name based on submitter name (usually same surname if married)
+        spouse_first_val = f"คู่สมรส{submitter_info.get('first_name', '')}"
+        spouse_last_val = submitter_info.get('last_name', '')
+        # Safe Age Logic
+        try:
+            sub_age = int(float(submitter_info.get('age')))
+        except:
+            sub_age = 50
+            
+        spouse_age_val = str(sub_age - np.random.randint(-5, 5))
+        spouse_status_val = marital_status
+    else:
+        spouse_id_val = 'NONE'
+        spouse_title_val = 'NONE'
+        spouse_first_val = 'NONE'
+        spouse_last_val = 'NONE'
+        spouse_age_val = 'NONE'
+        spouse_status_val = 'NONE'
+
     # สร้าง row ตาม template
     row = {
         'id': nacc_id,
@@ -118,18 +144,16 @@ for idx, doc_row in test_doc_info.iterrows():
         'submitter_mobile_number': submitter_info.get('mobile_number', 'NONE'),
         'submitter_email': submitter_info.get('email', 'NONE'),
         
-        # Spouse (Still mock if we don't have spouse info file - usually in relative file?)
-        'spouse_id': submitter_id * 10 if np.random.random() > 0.3 else 'NONE',
-        'spouse_title': 'นาง' if np.random.random() > 0.3 else 'NONE',
-        'spouse_first_name': f'คู่สมรส {submitter_info.get("first_name", "")}' if np.random.random() > 0.3 else 'NONE',
-        'spouse_last_name': submitter_info.get('last_name', ''), # Naming convention assumption
-        
-        # Statement statistics
-        'statement_valuation_submitter_total': float(stmt_sub_sum),
-        'statement_valuation_spouse_total': float(stmt_spouse_sum),
-        'statement_valuation_child_total': float(stmt_child_sum),
-        'statement_detail_count': len(statements),
-        'has_statement_detail_note': int(np.random.random() > 0.8),
+        # Spouse
+        'spouse_id': spouse_id_val,
+        'spouse_title': spouse_title_val,
+        'spouse_first_name': spouse_first_val,
+        'spouse_last_name': spouse_last_val,
+        'spouse_age': spouse_age_val,
+        'spouse_status': spouse_status_val,
+        'spouse_status_date': 'NONE',
+        'spouse_status_month': 'NONE',
+        'spouse_status_year': 'NONE',
         
         # Asset counts
         'asset_count': len(assets),
