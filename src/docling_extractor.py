@@ -7,7 +7,7 @@ import json
 import time
 from pathlib import Path
 from typing import Dict, Optional, List
-from docling.document_converter import DocumentConverter
+from docling.document_converter import DocumentConverter, PdfFormatOption
 from docling.datamodel.base_models import InputFormat
 from docling.datamodel.pipeline_options import PdfPipelineOptions, EasyOcrOptions
 
@@ -67,9 +67,14 @@ class DoclingExtractor:
             use_gpu=False
         )
 
+        # Create format options dict with PdfFormatOption
+        format_options = {
+            InputFormat.PDF: PdfFormatOption(pipeline_options=pipeline_options)
+        }
+
         self.converter = DocumentConverter(
             allowed_formats=[InputFormat.PDF],
-            pipeline_options=pipeline_options
+            format_options=format_options
         )
 
         print("   ✅ Docling initialized with Thai OCR")
@@ -161,18 +166,63 @@ class DoclingExtractor:
     def _extract_tables_structure(self, doc) -> List[Dict]:
         """Extract table structures for enhanced prompt"""
         tables = []
-        for page_num, page in enumerate(doc.pages):
-            if hasattr(page, 'tables'):
-                for table in page.tables:
+        try:
+            # Method 1: Try doc.tables directly
+            if hasattr(doc, 'tables') and doc.tables:
+                for idx, table in enumerate(doc.tables):
                     try:
-                        tables.append({
-                            "page": page_num + 1,
-                            "rows": len(table.data) if hasattr(table, 'data') else 0,
-                            "cols": len(table.data[0]) if hasattr(table, 'data') and table.data else 0,
-                            "content": table.export_to_markdown() if hasattr(table, 'export_to_markdown') else str(table)
-                        })
+                        table_data = {
+                            "index": idx + 1,
+                            "rows": 0,
+                            "cols": 0,
+                            "content": ""
+                        }
+
+                        # Try to get table markdown
+                        if hasattr(table, 'export_to_markdown'):
+                            table_data["content"] = table.export_to_markdown()
+                        elif hasattr(table, 'to_markdown'):
+                            table_data["content"] = table.to_markdown()
+                        else:
+                            table_data["content"] = str(table)
+
+                        # Count rows/cols from content
+                        lines = table_data["content"].split('\n')
+                        table_data["rows"] = len([l for l in lines if '|' in l and not l.strip().startswith('|-')])
+                        if table_data["rows"] > 0:
+                            first_row = [l for l in lines if '|' in l and not l.strip().startswith('|-')][0]
+                            table_data["cols"] = first_row.count('|') - 1
+
+                        tables.append(table_data)
                     except Exception as e:
-                        print(f"      ⚠️ Table extraction error on page {page_num + 1}: {e}")
+                        print(f"      ⚠️ Table {idx + 1} extraction error: {e}")
+
+            # Method 2: Search for table elements in document body
+            if not tables and hasattr(doc, 'body'):
+                try:
+                    from docling_core.types.doc import TableItem
+                    for idx, item in enumerate(doc.body.children):
+                        if isinstance(item, TableItem):
+                            table_md = item.export_to_markdown() if hasattr(item, 'export_to_markdown') else str(item)
+                            lines = table_md.split('\n')
+                            rows = len([l for l in lines if '|' in l and not l.strip().startswith('|-')])
+                            cols = 0
+                            if rows > 0:
+                                first_row = [l for l in lines if '|' in l and not l.strip().startswith('|-')][0]
+                                cols = first_row.count('|') - 1
+
+                            tables.append({
+                                "index": len(tables) + 1,
+                                "rows": rows,
+                                "cols": cols,
+                                "content": table_md
+                            })
+                except Exception as e:
+                    print(f"      ⚠️ Body table search error: {e}")
+
+        except Exception as e:
+            print(f"      ⚠️ Table extraction failed: {e}")
+
         return tables
 
     def _build_enhanced_prompt(
@@ -190,13 +240,18 @@ class DoclingExtractor:
         if tables_info:
             table_context = "\n**📊 DOCUMENT CONTAINS TABLES:**\n"
             for i, table in enumerate(tables_info):
-                table_context += f"\n**Table {i+1} (Page {table['page']}, {table['rows']}×{table['cols']}):**\n{table['content']}\n"
+                # Handle both old format (with 'page') and new format (with 'index')
+                page_info = f"Page {table['page']}" if 'page' in table else f"#{table.get('index', i+1)}"
+                table_context += f"\n**Table {i+1} ({page_info}, {table['rows']}×{table['cols']}):**\n{table['content']}\n"
 
-        # Truncate markdown if too long (keep within Gemini limits)
-        max_content_length = 25000  # Leave room for prompt structure
+        # Gemini 2.5 Flash supports up to 1M tokens (~4M chars)
+        # Keep full content - no truncation needed
+        max_content_length = 500000  # 500K chars = safe limit
         if len(markdown_content) > max_content_length:
             print(f"   ⚠️ Content truncated from {len(markdown_content)} to {max_content_length} chars")
             markdown_content = markdown_content[:max_content_length] + "\n\n... [document continues]"
+        else:
+            print(f"   ✅ Full content sent ({len(markdown_content)} chars)")
 
         prompt = f"""You are an expert data extraction assistant for Thailand's NACC (National Anti-Corruption Commission).
 
@@ -321,6 +376,9 @@ Return ONLY the JSON. NO explanations before or after.
         """Parse Gemini response to JSON with error recovery"""
         import re
 
+        # Debug: print first 500 chars of response
+        print(f"   🔍 Response preview (first 500 chars): {response_text[:500]}")
+
         # Remove markdown code blocks
         text = response_text.strip()
         if text.startswith("```json"):
@@ -334,16 +392,24 @@ Return ONLY the JSON. NO explanations before or after.
 
         # Try normal parsing
         try:
-            return json.loads(text)
-        except json.JSONDecodeError:
+            data = json.loads(text)
+            print(f"   ✅ JSON parsed successfully")
+            return data
+        except json.JSONDecodeError as e:
+            print(f"   ⚠️ JSON parse error: {e}")
+
             # Try to fix common issues
             fixed_text = text
             fixed_text = re.sub(r',(\s*[}\]])', r'\1', fixed_text)  # Remove trailing commas
+            fixed_text = re.sub(r'[\x00-\x1f\x7f-\x9f]', '', fixed_text)  # Remove control characters
 
             try:
-                return json.loads(fixed_text)
-            except:
-                print(f"   ⚠️ JSON parse failed, returning empty structure")
+                data = json.loads(fixed_text)
+                print(f"   ✅ JSON parsed after fix")
+                return data
+            except Exception as e2:
+                print(f"   ❌ JSON parse failed even after fix: {e2}")
+                print(f"   📄 Response text (first 1000 chars):\n{response_text[:1000]}")
                 return self._empty_structure()
 
     def _empty_structure(self) -> Dict:
