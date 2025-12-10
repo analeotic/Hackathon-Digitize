@@ -13,6 +13,10 @@ OUTPUT_DIR = PROJECT_ROOT / "output"
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 GEMINI_MODEL = "gemini-2.5-flash"  # Latest Gemini 2.5 Flash
 
+# Docling Configuration
+USE_DOCLING = os.getenv("USE_DOCLING", "true").lower() == "true"
+DOCLING_OCR_BACKEND = "easyocr"  # EasyOCR for Thai language support
+
 # CSV Output Files (13 files required)
 OUTPUT_CSV_FILES = [
     "submitter_old_name.csv",

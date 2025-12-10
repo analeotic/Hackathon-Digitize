@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  nacc-extractor:
+    build: .
+    container_name: nacc-pdf-extractor
+    volumes:
+      - ./data:/app/data
+      - ./output:/app/output
+      - ./.env:/app/.env:ro
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - USE_DOCLING=true
+    mem_limit: 8g
+    cpus: 4

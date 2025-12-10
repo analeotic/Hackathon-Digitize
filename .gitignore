@@ -207,3 +207,10 @@ marimo/_lsp/
 __marimo__/
 # Project Directories
 output/
+
+# Docling cache and models
+.docling_cache/
+docling_models/
+
+# Docker
+.dockerignore

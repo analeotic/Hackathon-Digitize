@@ -8,16 +8,29 @@ from typing import Optional
 import sys
 
 from .extractor import GeminiExtractor
+from .docling_extractor import DoclingExtractor
 from .transformer import DataTransformer
-from .config import DATA_DIR, OUTPUT_DIR
+from .config import DATA_DIR, OUTPUT_DIR, USE_DOCLING
 
 
 class Pipeline:
     """Main pipeline for processing NACC asset declaration documents"""
-    
-    def __init__(self, api_key: Optional[str] = None):
-        """Initialize pipeline with Gemini API key"""
-        self.extractor = GeminiExtractor(api_key) if api_key else GeminiExtractor()
+
+    def __init__(self, api_key: Optional[str] = None, use_docling: bool = USE_DOCLING):
+        """
+        Initialize pipeline with Gemini API key and extractor selection
+
+        Args:
+            api_key: Gemini API key (optional, reads from config if not provided)
+            use_docling: Use Docling extractor (default: True) or legacy EasyOCR extractor
+        """
+        if use_docling:
+            print("   🔧 Using Docling extractor (layout-aware, single API call)")
+            self.extractor = DoclingExtractor(api_key) if api_key else DoclingExtractor()
+        else:
+            print("   🔧 Using legacy EasyOCR extractor (chunked approach)")
+            self.extractor = GeminiExtractor(api_key) if api_key else GeminiExtractor()
+
         self.enum_mappings = self._load_enum_mappings()
     
     def _load_enum_mappings(self) -> dict:

@@ -5,3 +5,9 @@ tqdm>=4.65.0
 PyPDF2>=3.0.0
 pillow>=10.0.0
 openpyxl>=3.1.0
+
+# Docling dependencies for layout-aware PDF extraction
+docling>=2.0.0
+docling-core>=2.0.0
+easyocr>=1.7.0
+pdf2image>=1.16.0
