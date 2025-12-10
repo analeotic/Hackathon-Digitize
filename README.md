@@ -70,8 +70,25 @@ python main.py --mode test
 
 - **AI Model:** Google Gemini 2.0 Flash
 - **Language:** Python 3.8+
-- **Libraries:** pandas, google-generativeai, tqdm
+- **Libraries:** pandas, google-generativeai, tqdm, Docling
 - **Free API:** ใช้ Gemini Free Tier (15 RPM)
+
+## 🔄 Processing Pipeline
+
+```
+Data → Imputation → Docling → LLM → CSV
+```
+
+### ขั้นตอนการทำงาน:
+
+1. **Data Loading** - โหลด PDF และ metadata (doc_info, submitter_info, nacc_detail)
+2. **Imputation** ✨ - ทำความสะอาดข้อมูล:
+   - Fill missing values ในตาราง metadata
+   - Validate PDF files (ตรวจสอบไฟล์ไม่เสีย, มีหน้า, ขนาดเหมาะสม)
+   - Normalize text/dates/numbers
+3. **Docling** - แปลง PDF เป็น structured markdown (รักษารูปแบบตาราง)
+4. **LLM** - Extract ข้อมูลด้วย Gemini 2.0 Flash → JSON
+5. **CSV** - แปลง JSON เป็น 13 CSV files ตามมาตรฐาน Database
 
 ## 📊 โครงสร้างโปรเจค
 

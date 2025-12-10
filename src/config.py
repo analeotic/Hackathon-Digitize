@@ -17,6 +17,11 @@ GEMINI_MODEL = "gemini-2.5-flash"  # Latest Gemini 2.5 Flash
 USE_DOCLING = os.getenv("USE_DOCLING", "true").lower() == "true"
 DOCLING_OCR_BACKEND = "easyocr"  # EasyOCR for Thai language support
 
+# Imputation Configuration
+USE_IMPUTATION = os.getenv("USE_IMPUTATION", "true").lower() == "true"
+IMPUTATION_STRATEGY = os.getenv("IMPUTATION_STRATEGY", "forward_fill")  # forward_fill, mean, mode, none
+VALIDATE_PDF_BEFORE_EXTRACTION = True
+
 # CSV Output Files (13 files required)
 OUTPUT_CSV_FILES = [
     "submitter_old_name.csv",

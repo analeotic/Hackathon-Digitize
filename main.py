@@ -51,6 +51,12 @@ def main():
         help="Gemini API key (or set GEMINI_API_KEY env variable)"
     )
     
+    parser.add_argument(
+        "--skip-imputation",
+        action="store_true",
+        help="Skip data imputation step (not recommended)"
+    )
+    
     args = parser.parse_args()
     
     # Load environment variables
@@ -76,7 +82,7 @@ def main():
     print(f"🔑 API Key: {api_key[:10]}...")
     
     try:
-        pipeline = Pipeline(api_key=api_key)
+        pipeline = Pipeline(api_key=api_key, use_imputation=not args.skip_imputation)
         
         if args.pdf:
             # Process single PDF

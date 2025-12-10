@@ -10,19 +10,21 @@ import sys
 from .extractor import GeminiExtractor
 from .docling_extractor import DoclingExtractor
 from .transformer import DataTransformer
-from .config import DATA_DIR, OUTPUT_DIR, USE_DOCLING
+from .imputer import DataImputer
+from .config import DATA_DIR, OUTPUT_DIR, USE_DOCLING, USE_IMPUTATION, IMPUTATION_STRATEGY, VALIDATE_PDF_BEFORE_EXTRACTION
 
 
 class Pipeline:
     """Main pipeline for processing NACC asset declaration documents"""
 
-    def __init__(self, api_key: Optional[str] = None, use_docling: bool = USE_DOCLING):
+    def __init__(self, api_key: Optional[str] = None, use_docling: bool = USE_DOCLING, use_imputation: bool = USE_IMPUTATION):
         """
         Initialize pipeline with Gemini API key and extractor selection
 
         Args:
             api_key: Gemini API key (optional, reads from config if not provided)
             use_docling: Use Docling extractor (default: True) or legacy EasyOCR extractor
+            use_imputation: Use data imputation (default: True)
         """
         if use_docling:
             print("   🔧 Using Docling extractor (layout-aware, single API call)")
@@ -30,6 +32,15 @@ class Pipeline:
         else:
             print("   🔧 Using legacy EasyOCR extractor (chunked approach)")
             self.extractor = GeminiExtractor(api_key) if api_key else GeminiExtractor()
+
+        # Initialize Imputation module
+        self.use_imputation = use_imputation
+        if self.use_imputation:
+            print("   🧹 Using Data Imputation (metadata cleaning & PDF validation)")
+            self.imputer = DataImputer(strategy=IMPUTATION_STRATEGY, verbose=True)
+        else:
+            print("   ⚠️  Skipping Data Imputation")
+            self.imputer = None
 
         self.enum_mappings = self._load_enum_mappings()
     
@@ -97,6 +108,13 @@ class Pipeline:
         submitter_info_df = pd.read_csv(submitter_info_file, encoding='utf-8-sig')
         nacc_detail_df = pd.read_csv(nacc_detail_file, encoding='utf-8-sig')
         
+        # Imputation Step: Clean and validate metadata
+        if self.use_imputation and self.imputer:
+            print(f"\n🧹 Imputation: Cleaning metadata...")
+            doc_info_df = self.imputer.impute_metadata(doc_info_df, "doc_info")
+            submitter_info_df = self.imputer.impute_metadata(submitter_info_df, "submitter_info")
+            nacc_detail_df = self.imputer.impute_metadata(nacc_detail_df, "nacc_detail")
+        
         # Limit if specified
         if limit:
             doc_info_df = doc_info_df.head(limit)
@@ -138,6 +156,16 @@ class Pipeline:
             
             submitter_info = submitter_row.iloc[0].to_dict()
             nacc_detail = nacc_row.iloc[0].to_dict()
+            
+            # Imputation Step: Validate PDF before extraction
+            if self.use_imputation and self.imputer and VALIDATE_PDF_BEFORE_EXTRACTION:
+                validation_result = self.imputer.validate_pdf(pdf_path)
+                if not validation_result["valid"]:
+                    print(f"\n❌ PDF validation failed: {pdf_filename}")
+                    for error in validation_result["errors"]:
+                        print(f"      {error}")
+                    failed += 1
+                    continue
             
             try:
                 # Extract data from PDF
