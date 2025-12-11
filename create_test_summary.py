@@ -165,9 +165,11 @@ for idx, doc_row in test_doc_info.iterrows():
         'asset_building_valuation_amount': asset_bldg,
         'asset_vehicle_valuation_amount': asset_veh,
         'asset_other_asset_valuation_amount': asset_other,
-        'asset_valuation_submitter_amount': float(asset_total * 0.5),
-        'asset_valuation_spouse_amount': float(asset_total * 0.3),
-        'asset_valuation_child_amount': float(asset_total * 0.2),
+        
+        # CRITICAL FIX: Use REAL ownership from extracted data, not mock 50/30/20!
+        'asset_valuation_submitter_amount': float(assets[assets['owner_by_submitter'] == True]['valuation'].sum()) if len(assets) > 0 else 0.0,
+        'asset_valuation_spouse_amount': float(assets[assets['owner_by_spouse'] == True]['valuation'].sum()) if len(assets) > 0 else 0.0,
+        'asset_valuation_child_amount': float(assets[assets['owner_by_child'] == True]['valuation'].sum()) if len(assets) > 0 else 0.0,
         
         # Statement valuations - KEY IMPROVEMENT for score
         'statement_valuation_submitter_total': statement_valuation_submitter,
