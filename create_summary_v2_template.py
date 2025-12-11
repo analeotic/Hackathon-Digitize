@@ -52,22 +52,24 @@ for idx, doc_row in doc_info.iterrows():
     # Start with template
     row = template_row.copy()
     
-    # OVERRIDE: IDs and metadata (real data)
+    # OVERRIDE: IDs (MUST be real, not from template!)
     row['id'] = nacc_id
     row['doc_id'] = doc_row['doc_id']
     row['submitter_id'] = submitter_id
     
-    # OVERRIDE: NACC info (real data)
+    # OVERRIDE: NACC info - USE REAL DATA for all fields
     if nacc_info:
-        row['nd_title'] = nacc_info.get('title', row['nd_title'])
-        row['nd_first_name'] = nacc_info.get('first_name', row['nd_first_name'])
-        row['nd_last_name'] = nacc_info.get('last_name', row['nd_last_name'])
-        row['nd_position'] = nacc_info.get('position', row['nd_position'])
-        row['submitted_date'] = nacc_info.get('submitted_date', row['submitted_date'])
-        row['disclosure_announcement_date'] = nacc_info.get('disclosure_announcement_date', row['disclosure_announcement_date'])
-        row['disclosure_start_date'] = nacc_info.get('disclosure_start_date', row['disclosure_start_date'])
-        row['disclosure_end_date'] = nacc_info.get('disclosure_end_date', row['disclosure_end_date'])
-        row['agency'] = nacc_info.get('agency', row['agency'])
+        row['nd_title'] = nacc_info.get('title', 'NONE')
+        row['nd_first_name'] = nacc_info.get('first_name', 'NONE')
+        row['nd_last_name'] = nacc_info.get('last_name', 'NONE')
+        row['nd_position'] = nacc_info.get('position', 'NONE')
+        row['submitted_date'] = nacc_info.get('submitted_date', 'NONE')
+        row['disclosure_announcement_date'] = nacc_info.get('disclosure_announcement_date', 'NONE')
+        row['disclosure_start_date'] = nacc_info.get('disclosure_start_date', 'NONE')
+        row['disclosure_end_date'] = nacc_info.get('disclosure_end_date', 'NONE')
+        row['date_by_submitted_case'] = nacc_info.get('date_by_submitted_case', 'NONE')
+        row['royal_start_date'] = nacc_info.get('royal_start_date', 'NONE')
+        row['agency'] = nacc_info.get('agency', 'NONE')
     
     # OVERRIDE: Submitter info (real data)
     if submitter_info:
