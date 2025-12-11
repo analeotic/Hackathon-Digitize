@@ -2,8 +2,15 @@
 สร้าง Test_summary.csv แบบง่าย สำหรับส่ง Kaggle
 23 rows ตาม Test final docs
 """
+import warnings
+warnings.filterwarnings('ignore')
+
 import pandas as pd
 import numpy as np
+
+# FIX: Set random seed for reproducible results
+# This ensures we get the same mock patterns every time
+np.random.seed(42)
 
 # Load training summary เป็น template
 train_summary = pd.read_csv("data/training/train summary/Train_summary.csv", encoding='utf-8-sig')
