@@ -167,8 +167,8 @@ for idx, doc_row in test_doc_info.iterrows():
         'statement_valuation_spouse_total': statement_valuation_spouse,
         'statement_valuation_child_total': statement_valuation_child,
         
-        # Statement detail count - More diverse (1-10, weighted toward 3-7)
-        'statement_detail_count': int(np.random.choice(range(1, 11), p=[0.05, 0.1, 0.15, 0.2, 0.2, 0.15, 0.1, 0.03, 0.01, 0.01])),
+        # Statement detail count - Use REAL count from extracted statements
+        'statement_detail_count': len(statements),
         'has_statement_detail_note': int(np.random.random() > 0.7),  # 30% have notes
         
         # Relative stats
