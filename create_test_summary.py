@@ -81,19 +81,20 @@ for idx, doc_row in test_doc_info.iterrows():
     asset_veh = float(assets[(assets['asset_type_id'] >= 18) & (assets['asset_type_id'] <= 19)]['valuation'].sum()) if 'valuation' in assets.columns and len(assets) > 0 else 0.0
     asset_other = float(assets[(assets['asset_type_id'] > 19) | ((assets['asset_type_id'] > 1) & (assets['asset_type_id'] < 10))]['valuation'].sum()) if 'valuation' in assets.columns and len(assets) > 0 else 0.0
     
-    # REVERT to approach that got 0.40436 (best score so far)
-    # Simple uniform ranges work better than complex distributions
-    if asset_total > 0:
-        statement_valuation_submitter = float(np.random.uniform(1_000_000, 200_000_000))
-        statement_valuation_spouse = float(np.random.uniform(500_000, 100_000_000))
-        statement_valuation_child = float(np.random.uniform(0, 80_000_000) if np.random.random() > 0.3 else np.random.uniform(0, 5_000_000))
+    # CRITICAL FIX: Use REAL extracted statement valuations instead of mock!
+    # Sum actual values from Test_statement.csv for this submitter
+    if len(statements) > 0:
+        statement_valuation_submitter = float(statements['valuation_submitter'].fillna(0).sum())
+        statement_valuation_spouse = float(statements['valuation_spouse'].fillna(0).sum())
+        statement_valuation_child = float(statements['valuation_child'].fillna(0).sum())
     else:
-        statement_valuation_submitter = float(np.random.uniform(500_000, 50_000_000))
-        statement_valuation_spouse = float(np.random.uniform(0, 20_000_000))
-        statement_valuation_child = float(np.random.uniform(0, 5_000_000))
+        # Only mock if no statements extracted
+        statement_valuation_submitter = 0.0
+        statement_valuation_spouse = 0.0
+        statement_valuation_child = 0.0
     
-    # FIX: Guarantee minimum asset diversity for better score
-    effective_asset_count = max(len(assets), np.random.randint(2, 7)) if len(assets) < 4 else len(assets)
+    # Use actual asset count (no longer need to mock minimum)
+    effective_asset_count = len(assets)
 
     # สร้าง row ตาม template
     row = {
