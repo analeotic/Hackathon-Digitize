@@ -10,7 +10,7 @@ import numpy as np
 
 # FIX: Set random seed for reproducible results
 # This ensures we get the same mock patterns every time
-np.random.seed(6)
+np.random.seed(999)
 
 # Load training summary เป็น template
 train_summary = pd.read_csv("data/training/train summary/Train_summary.csv", encoding='utf-8-sig')
