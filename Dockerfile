@@ -1,14 +1,16 @@
 FROM python:3.11-slim
 
-# Install system dependencies for Docling and OCR
-RUN apt-get update && apt-get install -y \
-    libgl1-mesa-glx \
+# Install system dependencies for Vision API and OCR
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    libgl1 \
     libglib2.0-0 \
     libsm6 \
     libxext6 \
-    libxrender-dev \
+    libxrender1 \
     libgomp1 \
     poppler-utils \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -22,10 +24,16 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY . .
 
+# Create output directory
+RUN mkdir -p src/backend/output/single
+
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
-ENV USE_DOCLING=true
+ENV USE_VISION=true
+ENV USE_DOCLING=false
 
-# Run main script
-ENTRYPOINT ["python", "main.py"]
-CMD ["--mode", "test"]
+# Expose ports for Frontend and API
+EXPOSE 8000 5001
+
+# Run both servers
+CMD ["python", "start_servers.py"]

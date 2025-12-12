@@ -13,8 +13,9 @@ OUTPUT_DIR = Path(__file__).parent / "output"  # Now in backend/output
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 GEMINI_MODEL = "gemini-2.5-flash"  # Latest Gemini 2.5 Flash
 
-# Docling Configuration
-USE_DOCLING = os.getenv("USE_DOCLING", "true").lower() == "true"
+# Extraction Method Configuration
+USE_VISION = os.getenv("USE_VISION", "true").lower() == "true"  # Gemini Vision API (fast & accurate)
+USE_DOCLING = os.getenv("USE_DOCLING", "false").lower() == "true"  # Docling OCR (slower, for comparison)
 DOCLING_OCR_BACKEND = "easyocr"  # EasyOCR for Thai language support
 
 # Imputation Configuration

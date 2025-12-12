@@ -9,24 +9,29 @@ import sys
 
 from .extractor import GeminiExtractor
 from .docling_extractor import DoclingExtractor
+from .vision_extractor import VisionExtractor
 from .transformer import DataTransformer
 from .imputer import DataImputer
-from .config import DATA_DIR, OUTPUT_DIR, USE_DOCLING, USE_IMPUTATION, IMPUTATION_STRATEGY, VALIDATE_PDF_BEFORE_EXTRACTION
+from .config import DATA_DIR, OUTPUT_DIR, USE_VISION, USE_DOCLING, USE_IMPUTATION, IMPUTATION_STRATEGY, VALIDATE_PDF_BEFORE_EXTRACTION
 
 
 class Pipeline:
     """Main pipeline for processing NACC asset declaration documents"""
 
-    def __init__(self, api_key: Optional[str] = None, use_docling: bool = USE_DOCLING, use_imputation: bool = USE_IMPUTATION):
+    def __init__(self, api_key: Optional[str] = None, use_vision: bool = USE_VISION, use_docling: bool = USE_DOCLING, use_imputation: bool = USE_IMPUTATION):
         """
         Initialize pipeline with Gemini API key and extractor selection
 
         Args:
             api_key: Gemini API key (optional, reads from config if not provided)
-            use_docling: Use Docling extractor (default: True) or legacy EasyOCR extractor
+            use_vision: Use Gemini Vision API (default: True, fastest & most accurate)
+            use_docling: Use Docling extractor (default: False) or legacy EasyOCR extractor
             use_imputation: Use data imputation (default: True)
         """
-        if use_docling:
+        if use_vision:
+            print("   🚀 Using Gemini Vision API (direct image processing - FAST & ACCURATE)")
+            self.extractor = VisionExtractor(api_key) if api_key else VisionExtractor()
+        elif use_docling:
             print("   🔧 Using Docling extractor (layout-aware, single API call)")
             self.extractor = DoclingExtractor(api_key) if api_key else DoclingExtractor()
         else:
