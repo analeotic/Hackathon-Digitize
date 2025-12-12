@@ -5,7 +5,6 @@ const ctx = pdfCanvas.getContext('2d');
 const drawCtx = drawCanvas.getContext('2d');
 const container = document.getElementById('pdf-container');
 const btnExtract = document.getElementById('btn-extract');
-const btnClear = document.getElementById('btn-clear');
 const statusLog = document.getElementById('status-log');
 const pageInfo = document.getElementById('page-info');
 const uploadState = document.getElementById('upload-empty-state');
@@ -172,8 +171,6 @@ function clearDrawings() {
     drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
     currentRect = null;
 }
-
-btnClear.addEventListener('click', clearDrawings);
 
 // Store last result for preview
 let lastExtractedResult = null;
