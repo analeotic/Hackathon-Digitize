@@ -63,7 +63,7 @@ class DoclingExtractor:
             "temperature": TEMPERATURE,
             "top_p": TOP_P,
             "top_k": TOP_K,
-            "max_output_tokens": 8192,
+            "max_output_tokens": 32768,  # Increased for larger PDFs
         }
 
         # Initialize Docling with Thai OCR support
