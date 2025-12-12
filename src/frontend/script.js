@@ -204,7 +204,7 @@ btnExtract.addEventListener('click', async () => {
     formData.append('scale', scale);
 
     try {
-        const response = await fetch('http://localhost:5000/extract_region', {
+        const response = await fetch('http://localhost:5001/extract_region', {
             method: 'POST',
             body: formData
         });

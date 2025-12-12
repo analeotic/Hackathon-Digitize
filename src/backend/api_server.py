@@ -2,10 +2,17 @@
 FastAPI server for NACC PDF Digitizer
 Connects frontend PDF viewer with backend processing pipeline
 """
+# Load .env first before any imports that use environment variables
+from dotenv import load_dotenv
+from pathlib import Path
+
+# Load .env from project root
+env_path = Path(__file__).parent.parent.parent / '.env'
+load_dotenv(dotenv_path=env_path)
+
 from fastapi import FastAPI, File, UploadFile, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
-from pathlib import Path
 import tempfile
 import shutil
 from typing import Optional
@@ -95,8 +102,13 @@ async def extract_region(
             print(f"   Page: {page}, Scale: {scale}")
             
             # Run pipeline on single PDF
-            result = pipeline.process_single_pdf(tmp_path)
-            
+            # Use default IDs for single file processing
+            result = pipeline.process_single_pdf(
+                tmp_path,
+                submitter_id=1,  # Default ID for single file upload
+                nacc_id=1        # Default ID for single file upload
+            )
+
             # Get output directory
             output_dir = OUTPUT_DIR / "single"
             
@@ -150,6 +162,6 @@ if __name__ == "__main__":
     import uvicorn
     print("🚀 Starting NACC PDF Digitizer API Server...")
     print("📡 Frontend: http://localhost:8000")
-    print("🔧 API: http://localhost:5000")
-    print("📖 Docs: http://localhost:5000/docs")
-    uvicorn.run(app, host="0.0.0.0", port=5000, log_level="info")
+    print("🔧 API: http://localhost:5001")
+    print("📖 Docs: http://localhost:5001/docs")
+    uvicorn.run(app, host="0.0.0.0", port=5001, log_level="info")
