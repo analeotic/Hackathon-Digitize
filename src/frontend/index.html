@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digitizer</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@100..900&display=swap" rel="stylesheet" />
+
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    </script>
+</head>
+
+<body>
+    <div class="app-container">
+        <header class="main-header">
+            <div class="logo">
+                <span class="icon"></span>
+                <h1>Hackathon <span class="highlight">Digitizer</span></h1>
+            </div>
+            </header>
+
+        <main class="workspace">
+            <aside class="sidebar">
+                <div class="sidebar-panel">
+                    <h3>เครื่องมือ (Tools)</h3>
+                    <div class="tools-grid">
+                        <button id="tool-select" class="tool-btn active">👆 เลือก</button>
+                        <button id="tool-draw" class="tool-btn">✏️ วาดพื้นที่</button>
+                    </div>
+                </div>
+
+                <div class="sidebar-panel">
+                    <h3>การจัดการ (Actions)</h3>
+                    <div class="action-list">
+                        <button id="btn-extract" class="action-btn primary" disabled>แปลงเป็น CSV</button>
+                        <button id="btn-clear" class="action-btn secondary">ล้างพื้นที่ที่เลือก</button>
+                    </div>
+                </div>
+
+                <div class="sidebar-panel">
+                    <h3>สถานะ (Status)</h3>
+                    <div id="status-log" class="status-box">
+                        <p class="text-info">กรุณาอัพโหลดไฟล์ PDF เพื่อเริ่มต้น...</p>
+                    </div>
+                </div>
+            </aside>
+
+            <section class="viewer-area">
+
+                <div id="upload-empty-state" class="empty-state-container">
+                    <div class="dashed-upload-box">
+                        <div class="icon-large">📄</div>
+                        <h3>อัพโหลดไฟล์ PDF เพื่อเริ่มต้น</h3>
+                        <p>ลากไฟล์มาวาง หรือกดปุ่มด้านล่าง</p>
+                        <label for="pdf-upload" class="upload-btn-large">
+                            <span>เลือกไฟล์จากเครื่อง</span>
+                            <input type="file" id="pdf-upload" accept="application/pdf" hidden>
+                        </label>
+                    </div>
+                </div>
+
+                <div id="pdf-container" class="pdf-wrapper hidden">
+                    <canvas id="pdf-render"></canvas>
+                    <canvas id="draw-layer"></canvas>
+                </div>
+
+                <div id="pagination-controls" class="pagination-controls hidden">
+                    <button id="prev-page">❮ ก่อนหน้า</button>
+                    <span id="page-info">หน้า <span id="current-page">0</span> / <span id="total-pages">0</span></span>
+                    <button id="next-page">หน้าถัดไป ❯</button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

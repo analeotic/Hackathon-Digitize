@@ -19,16 +19,16 @@ from .config import (
 
 class GeminiExtractor:
     """Extract structured data from PDF using Gemini 2.0 Flash"""
-    
+
     def __init__(self, api_key: str = GEMINI_API_KEY):
         """Initialize Gemini API client"""
         if not api_key:
             raise ValueError(
                 "GEMINI_API_KEY not found. Please set it in .env file or environment variable."
             )
-        
+
         genai.configure(api_key=api_key)
-        
+
         # Configure safety settings to allow government document processing
         safety_settings = [
             {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
@@ -36,12 +36,12 @@ class GeminiExtractor:
             {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"},
             {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"},
         ]
-        
+
         self.model = genai.GenerativeModel(
             GEMINI_MODEL,
             safety_settings=safety_settings
         )
-        
+
         # Configure generation parameters
         self.generation_config = {
             "temperature": TEMPERATURE,
@@ -49,23 +49,23 @@ class GeminiExtractor:
             "top_k": TOP_K,
             "max_output_tokens": 8192,
         }
-    
+
     def extract_from_pdf(
-        self, 
-        pdf_path: Path, 
+        self,
+        pdf_path: Path,
         submitter_info: Dict,
         nacc_detail: Dict,
         enum_mappings: Dict
     ) -> Dict:
         """
         Extract structured data from a single PDF
-        
+
         Args:
             pdf_path: Path to PDF file
             submitter_info: Basic submitter information from CSV
             nacc_detail: NACC detail information from CSV
             enum_mappings: Enum type mappings for validation
-            
+
         Returns:
             Structured data dictionary matching database schema
         """
@@ -75,18 +75,18 @@ class GeminiExtractor:
             from pdf2image import convert_from_path
             import easyocr
             import numpy as np
-            
+
             print(f"   📖 Converting PDF to images...")
             images = convert_from_path(pdf_path, dpi=300, fmt='png')
-            
+
             print(f"   📸 Converted {len(images)} pages")
             print(f"   🔧 Initializing EasyOCR...")
-            
+
             # Initialize Easy OCR once
             reader = easyocr.Reader(['th', 'en'], gpu=False, verbose=False)
-            
+
             print(f"   ✅ EasyOCR ready! Processing pages...")
-            
+
             # Process pages in small chunks (3 pages at a time)
             chunk_size = 3
             all_extracted_data = {
@@ -96,13 +96,13 @@ class GeminiExtractor:
                 "spouse_info": None,
                 "relatives": []
             }
-            
+
             for chunk_start in range(0, len(images), chunk_size):
                 chunk_end = min(chunk_start + chunk_size, len(images))
                 chunk_pages = images[chunk_start:chunk_end]
-                
+
                 print(f"   🔍 Processing pages {chunk_start+1}-{chunk_end}...")
-                
+
                 # Extract text from this chunk with EasyOCR
                 chunk_text = ""
                 for i, img in enumerate(chunk_pages):
@@ -111,22 +111,22 @@ class GeminiExtractor:
                     result = reader.readtext(img_array, detail=0)
                     page_text = '\n'.join(result)
                     chunk_text += f"\n\n=== หน้า {page_num} ===\n{page_text}"
-                
+
                 print(f"      OCR: {len(chunk_text)} chars")
-                
+
                 # Send this chunk's text to Gemini
                 try:
                     prompt = self._build_extraction_prompt(submitter_info, nacc_detail, enum_mappings)
                     chunk_prompt = f"{prompt}\n\n**เนื้อหา (หน้า {chunk_start+1}-{chunk_end}):**\n{chunk_text}"
-                    
+
                     response = self.model.generate_content(
                         chunk_prompt,
                         generation_config=self.generation_config,
                     )
-                    
+
                     if response.candidates and response.candidates[0].content.parts:
                         chunk_data = self._parse_response(response.text)
-                        
+
                         # Merge chunk data into all_extracted_data
                         if chunk_data:
                             for key in all_extracted_data:
@@ -134,15 +134,15 @@ class GeminiExtractor:
                                     all_extracted_data[key].extend(chunk_data[key])
                                 elif key == "spouse_info" and chunk_data.get(key):
                                     all_extracted_data[key] = chunk_data[key]
-                            
+
                             print(f"      ✅ Chunk parsed successfully")
                     else:
                         print(f"      ⚠️ Chunk blocked by Gemini")
-                        
+
                 except Exception as e:
                     print(f"      ⚠️ Chunk error: {e}")
                     continue
-            
+
             print(f"   📊 Total extracted items:")
             total_items = sum(len(v) if isinstance(v, list) else (1 if v else 0) for v in all_extracted_data.values())
             print(f"      - Assets: {len(all_extracted_data.get('assets', []))}")
@@ -150,25 +150,25 @@ class GeminiExtractor:
             print(f"      - Positions: {len(all_extracted_data.get('submitter_positions', []))}")
             print(f"      - Relatives: {len(all_extracted_data.get('relatives', []))}")
             print(f"      - Total: {total_items}")
-            
+
             return all_extracted_data
-            
+
         except Exception as e:
             print(f"   ❌ Extraction failed: {e}")
             import traceback
             traceback.print_exc()
             return {}
-        
+
         # Old retry logic removed - using chunked approach above
-    
+
     def _build_extraction_prompt(
-        self, 
+        self,
         submitter_info: Dict,
         nacc_detail: Dict,
         enum_mappings: Dict
     ) -> str:
         """Build comprehensive extraction prompt for Gemini"""
-        
+
         prompt = f"""You are an expert data extraction assistant for Thailand's NACC (National Anti-Corruption Commission).
 
 **CRITICAL CONTEXT:** This is OFFICIAL PUBLIC government transparency data required by Thai law. You are helping digitize public asset declarations.
@@ -251,7 +251,7 @@ class GeminiExtractor:
 **ASSET TYPE IDs:**
 1 = ที่ดิน (Land)
 10-13 = อาคาร/บ้าน (Buildings)
-18-19 = ยานพาหนะ (Vehicles)  
+18-19 = ยานพาหนะ (Vehicles)
 22 = ประกันชีวิต (Insurance)
 28-33 = ทรัพย์สินอื่น (Other assets)
 
@@ -259,13 +259,13 @@ class GeminiExtractor:
 
 Return ONLY the JSON. NO explanations before or after.
 """
-        
+
         return prompt
-    
+
     def _parse_response(self, response_text: str) -> Dict:
         """Parse Gemini response to JSON with error recovery"""
         import re
-        
+
         # Remove markdown code blocks if present
         text = response_text.strip()
         if text.startswith("```json"):
@@ -274,29 +274,29 @@ Return ONLY the JSON. NO explanations before or after.
             text = text[3:]
         if text.endswith("```"):
             text = text[:-3]
-        
+
         text = text.strip()
-        
+
         # Try normal parsing first
         try:
             return json.loads(text)
         except json.JSONDecodeError as e:
             # JSON has errors - try to fix common issues
             fixed_text = text
-            
+
             # Fix unterminated strings by adding closing quote
             fixed_text = re.sub(r'(["\'])\s*\n\s*([}\]])', r'\1\2', fixed_text)
-            
+
             # Remove trailing commas
             fixed_text = re.sub(r',(\s*[}\]])', r'\1', fixed_text)
-            
+
             # Try again
             try:
                 return json.loads(fixed_text)
             except:
                 # Still failed - extract what we can with regex
                 print(f"   ⚠️ JSON parse failed, extracting with regex...")
-                
+
                 # Try to extract JSON fragments
                 data = {
                     "assets": [],
@@ -305,7 +305,7 @@ Return ONLY the JSON. NO explanations before or after.
                     "spouse_info": None,
                     "relatives": []
                 }
-                
+
                 # Extract arrays using regex
                 assets_match = re.search(r'"assets":\s*\[([^\]]+)\]', text, re.DOTALL)
                 if assets_match:
@@ -317,7 +317,7 @@ Return ONLY the JSON. NO explanations before or after.
                         print(f"      Recovered {len(data['assets'])} assets")
                     except:
                         pass
-                
+
                 statements_match = re.search(r'"statements":\s*\[([^\]]+)\]', text, re.DOTALL)
                 if statements_match:
                     try:
@@ -327,5 +327,5 @@ Return ONLY the JSON. NO explanations before or after.
                         print(f"      Recovered {len(data['statements'])} statements")
                     except:
                         pass
-                
+
                 return data
