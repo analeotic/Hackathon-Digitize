@@ -211,12 +211,54 @@ btnExtract.addEventListener('click', async () => {
 
         if (response.ok) {
             const result = await response.json();
-            log('แปลงข้อมูลสำเร็จ!', 'success');
-            console.log(result);
-            alert('ผลลัพธ์: ' + JSON.stringify(result, null, 2));
+            log('✅ แปลงข้อมูลสำเร็จ!', 'success');
+
+            // Display confidence scores
+            if (result.confidence) {
+                const conf = result.confidence;
+                const overall = (conf.overall * 100).toFixed(1);
+                const stats = conf.field_stats;
+
+                log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`, 'info');
+                log(`📊 CONFIDENCE SCORE REPORT`, 'info');
+                log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`, 'info');
+                log(`Overall Confidence: ${overall}%`, 'success');
+                log(``, 'info');
+                log(`Field Statistics:`, 'info');
+                log(`  Total Fields: ${stats.total || 0}`, 'info');
+                log(`  ✅ High (≥90%):   ${stats.high_confidence || 0}`, 'success');
+                log(`  ⚠️  Medium (70-90%): ${stats.medium_confidence || 0}`, 'info');
+                log(`  ❌ Low (<70%):    ${stats.low_confidence || 0}`, stats.low_confidence > 0 ? 'error' : 'info');
+
+                if (conf.low_confidence_fields && conf.low_confidence_fields.length > 0) {
+                    log(``, 'info');
+                    log(`⚠️  Low Confidence Fields:`, 'error');
+                    conf.low_confidence_fields.slice(0, 5).forEach(field => {
+                        const confPct = (field.confidence * 100).toFixed(0);
+                        log(`  - ${field.field}: ${confPct}%`, 'error');
+                    });
+                }
+
+                if (conf.warnings && conf.warnings.length > 0) {
+                    log(``, 'info');
+                    log(`❗ Validation Warnings:`, 'error');
+                    conf.warnings.slice(0, 5).forEach(warning => {
+                        log(`  - ${warning}`, 'error');
+                    });
+                }
+
+                log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`, 'info');
+            }
+
+            // Display CSV files
+            if (result.output && result.output.csv_files) {
+                log(`📁 Generated ${result.output.count} CSV files`, 'success');
+            }
+
+            console.log('Full result:', result);
         } else {
             const err = await response.text();
-            log('Error: ' + err, 'error');
+            log('❌ Error: ' + err, 'error');
         }
     } catch (error) {
         log('Connection Error: ' + error.message, 'error');

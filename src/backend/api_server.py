@@ -19,6 +19,7 @@ from typing import Optional
 
 from .pipeline import Pipeline
 from .config import OUTPUT_DIR
+from .confidence_scorer import add_confidence_scores
 
 app = FastAPI(title="NACC PDF Digitizer API", version="1.0.0")
 
@@ -111,11 +112,14 @@ async def extract_region(
 
             # Get output directory
             output_dir = OUTPUT_DIR / "single"
-            
+
             # Find generated CSVs
             csv_files = list(output_dir.glob("*.csv"))
             csv_names = [f.name for f in csv_files]
-            
+
+            # Add confidence scores to result
+            scored_result = add_confidence_scores(result) if result else {}
+
             return JSONResponse({
                 "success": True,
                 "message": f"Processed {file.filename} successfully",
@@ -130,7 +134,13 @@ async def extract_region(
                     "csv_files": csv_names,
                     "count": len(csv_files)
                 },
-                "data": result if result else {}
+                "data": scored_result.get("data", result) if result else {},
+                "confidence": {
+                    "overall": scored_result.get("overall_confidence", 0.0),
+                    "field_stats": scored_result.get("field_count", {}),
+                    "low_confidence_fields": scored_result.get("low_confidence_fields", []),
+                    "warnings": scored_result.get("validation_warnings", [])
+                }
             })
             
         finally:
