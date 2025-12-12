@@ -175,6 +175,9 @@ function clearDrawings() {
 
 btnClear.addEventListener('click', clearDrawings);
 
+// Store last result for preview
+let lastExtractedResult = null;
+
 btnExtract.addEventListener('click', async () => {
 
     log('กำลังส่งข้อมูลไปยังเซิร์ฟเวอร์...', 'info');
@@ -182,6 +185,25 @@ btnExtract.addEventListener('click', async () => {
 
     const fileInput = document.getElementById('pdf-upload');
     if (!fileInput.files[0]) return;
+
+    // Show loading overlay
+    const loadingOverlay = document.getElementById('loading-overlay');
+    const loadingStep = document.getElementById('loading-step');
+    loadingOverlay.classList.remove('hidden');
+
+    // Loading step animation
+    const loadingSteps = [
+        '📄 กำลังอ่านเอกสาร...',
+        '🔍 วิเคราะห์โครงสร้างเอกสาร...',
+        '🤖 AI กำลังประมวลผล...',
+        '📊 แปลงข้อมูลเป็น CSV...',
+        '✨ กำลังสรุปผลลัพธ์...'
+    ];
+    let stepIndex = 0;
+    const stepInterval = setInterval(() => {
+        stepIndex = (stepIndex + 1) % loadingSteps.length;
+        loadingStep.textContent = loadingSteps[stepIndex];
+    }, 2000);
 
     const formData = new FormData();
     formData.append('file', fileInput.files[0]);
@@ -204,21 +226,38 @@ btnExtract.addEventListener('click', async () => {
     formData.append('scale', scale);
 
     try {
-        const response = await fetch('http://localhost:5001/extract_region', {
+        const response = await fetch('/extract_region', {
             method: 'POST',
             body: formData
         });
 
+        // Hide loading overlay
+        clearInterval(stepInterval);
+        loadingOverlay.classList.add('hidden');
+
         if (response.ok) {
             const result = await response.json();
+            lastExtractedResult = result;
             log('✅ แปลงข้อมูลสำเร็จ!', 'success');
 
-            // Display confidence scores
+            // Display confidence scores in sidebar
+            const confidenceDisplay = document.getElementById('confidence-display');
             if (result.confidence) {
                 const conf = result.confidence;
                 const overall = (conf.overall * 100).toFixed(1);
                 const stats = conf.field_stats;
 
+                confidenceDisplay.innerHTML = `
+                    <div class="confidence-label">ความแม่นยำโดยรวม</div>
+                    <div class="confidence-score">${overall}%</div>
+                    <div class="confidence-stats">
+                        <span class="stat-high">✅ ${stats.high_confidence || 0}</span>
+                        <span class="stat-medium">⚠️ ${stats.medium_confidence || 0}</span>
+                        <span class="stat-low">❌ ${stats.low_confidence || 0}</span>
+                    </div>
+                `;
+
+                // Log detailed confidence info
                 log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`, 'info');
                 log(`📊 CONFIDENCE SCORE REPORT`, 'info');
                 log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`, 'info');
@@ -253,6 +292,48 @@ btnExtract.addEventListener('click', async () => {
             // Display CSV files
             if (result.output && result.output.csv_files) {
                 log(`📁 Generated ${result.output.count} CSV files`, 'success');
+
+                const resultsSidebar = document.getElementById('results-sidebar');
+                const downloadList = document.getElementById('download-list');
+                const previewBtn = document.getElementById('btn-preview-data');
+
+                // Clear previous results and show right sidebar
+                downloadList.innerHTML = '';
+                resultsSidebar.classList.remove('hidden');
+
+                result.output.csv_files.forEach(filename => {
+                    const btn = document.createElement('a');
+                    btn.href = `/download/${filename}`;
+                    btn.textContent = `📄 ${filename}`;
+                    btn.download = filename;
+                    btn.onclick = (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        fetch(btn.href)
+                            .then(res => res.blob())
+                            .then(blob => {
+                                const url = URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.download = filename;
+                                document.body.appendChild(a);
+                                a.click();
+                                document.body.removeChild(a);
+                                URL.revokeObjectURL(url);
+                                log(`✅ ดาวน์โหลด ${filename} สำเร็จ`, 'success');
+                            })
+                            .catch(err => log('Download error: ' + err.message, 'error'));
+                        return false;
+                    };
+
+                    downloadList.appendChild(btn);
+                });
+
+                // Show preview button
+                previewBtn.style.display = 'block';
+                previewBtn.onclick = () => showDataPreviewModal(result.data);
+
+                log('✅ ดูผลลัพธ์ได้ที่แถบด้านขวา', 'success');
             }
 
             console.log('Full result:', result);
@@ -261,8 +342,153 @@ btnExtract.addEventListener('click', async () => {
             log('❌ Error: ' + err, 'error');
         }
     } catch (error) {
+        // Hide loading overlay on error
+        clearInterval(stepInterval);
+        loadingOverlay.classList.add('hidden');
+
         log('Connection Error: ' + error.message, 'error');
+        log('ℹ️ ตรวจสอบว่า API Server กำลังทำงานอยู่ที่ port 5001', 'info');
     } finally {
         btnExtract.disabled = false;
     }
 });
+
+// Data Preview Modal
+function showDataPreviewModal(data) {
+    if (!data) return;
+
+    // Create modal overlay
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.onclick = (e) => {
+        if (e.target === overlay) overlay.remove();
+    };
+
+    // Create modal content
+    const modal = document.createElement('div');
+    modal.className = 'modal-content';
+
+    // Header
+    const header = document.createElement('div');
+    header.className = 'modal-header';
+    header.innerHTML = `
+        <h2>📊 ข้อมูลที่แปลงได้</h2>
+        <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">✕</button>
+    `;
+    modal.appendChild(header);
+
+    // Body
+    const body = document.createElement('div');
+    body.className = 'modal-body';
+
+    // Create tables for each data type
+    let content = '';
+
+    // Assets
+    if (data.assets && data.assets.length > 0) {
+        content += `<h3>📦 ทรัพย์สิน (Assets): ${data.assets.length} รายการ</h3>`;
+        content += `<table class="data-table">
+            <thead>
+                <tr><th>#</th><th>ประเภท</th><th>ชื่อ</th><th>มูลค่า</th><th>เจ้าของ</th></tr>
+            </thead>
+            <tbody>`;
+        data.assets.forEach((asset, i) => {
+            const owner = [];
+            if (asset.owner_by_submitter) owner.push('ผู้ยื่น');
+            if (asset.owner_by_spouse) owner.push('คู่สมรส');
+            if (asset.owner_by_child) owner.push('บุตร');
+            content += `<tr>
+                <td>${i + 1}</td>
+                <td>${asset.asset_type_id || '-'}</td>
+                <td>${asset.asset_name || '-'}</td>
+                <td>${asset.valuation?.toLocaleString() || '-'}</td>
+                <td>${owner.join(', ') || '-'}</td>
+            </tr>`;
+        });
+        content += `</tbody></table><br>`;
+    }
+
+    // Statements
+    if (data.statements && data.statements.length > 0) {
+        content += `<h3>📝 รายการ (Statements): ${data.statements.length} รายการ</h3>`;
+        content += `<table class="data-table">
+            <thead>
+                <tr><th>#</th><th>ประเภท</th><th>มูลค่า</th><th>เจ้าของ</th></tr>
+            </thead>
+            <tbody>`;
+        data.statements.forEach((stmt, i) => {
+            const owner = [];
+            if (stmt.owner_by_submitter) owner.push('ผู้ยื่น');
+            if (stmt.owner_by_spouse) owner.push('คู่สมรส');
+            if (stmt.owner_by_child) owner.push('บุตร');
+            content += `<tr>
+                <td>${i + 1}</td>
+                <td>${stmt.statement_type_id || '-'}</td>
+                <td>${stmt.valuation?.toLocaleString() || '-'}</td>
+                <td>${owner.join(', ') || '-'}</td>
+            </tr>`;
+        });
+        content += `</tbody></table><br>`;
+    }
+
+    // Positions
+    if (data.submitter_positions && data.submitter_positions.length > 0) {
+        content += `<h3>👔 ตำแหน่ง (Positions): ${data.submitter_positions.length} รายการ</h3>`;
+        content += `<table class="data-table">
+            <thead>
+                <tr><th>#</th><th>ตำแหน่ง</th><th>หน่วยงาน</th><th>ปีที่เริ่ม</th></tr>
+            </thead>
+            <tbody>`;
+        data.submitter_positions.forEach((pos, i) => {
+            content += `<tr>
+                <td>${i + 1}</td>
+                <td>${pos.position_title || '-'}</td>
+                <td>${pos.position_agency || '-'}</td>
+                <td>${pos.position_start_year || '-'}</td>
+            </tr>`;
+        });
+        content += `</tbody></table><br>`;
+    }
+
+    // Relatives
+    if (data.relatives && data.relatives.length > 0) {
+        content += `<h3>👨‍👩‍👧‍👦 ญาติ (Relatives): ${data.relatives.length} คน</h3>`;
+        content += `<table class="data-table">
+            <thead>
+                <tr><th>#</th><th>ชื่อ</th><th>นามสกุล</th><th>ความสัมพันธ์</th><th>อายุ</th></tr>
+            </thead>
+            <tbody>`;
+        data.relatives.forEach((rel, i) => {
+            content += `<tr>
+                <td>${i + 1}</td>
+                <td>${rel.first_name || '-'}</td>
+                <td>${rel.last_name || '-'}</td>
+                <td>${rel.relationship_id || '-'}</td>
+                <td>${rel.age || '-'}</td>
+            </tr>`;
+        });
+        content += `</tbody></table><br>`;
+    }
+
+    // Spouse
+    if (data.spouse_info) {
+        content += `<h3>💑 คู่สมรส (Spouse)</h3>`;
+        content += `<table class="data-table">
+            <tbody>
+                <tr><th>ชื่อ</th><td>${data.spouse_info.first_name || '-'}</td></tr>
+                <tr><th>นามสกุล</th><td>${data.spouse_info.last_name || '-'}</td></tr>
+                <tr><th>อาชีพ</th><td>${data.spouse_info.occupation || '-'}</td></tr>
+                <tr><th>อายุ</th><td>${data.spouse_info.age || '-'}</td></tr>
+            </tbody>
+        </table><br>`;
+    }
+
+    if (!content) {
+        content = '<p style="text-align:center; color:#888;">ไม่พบข้อมูลที่แปลงได้</p>';
+    }
+
+    body.innerHTML = content;
+    modal.appendChild(body);
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+}

@@ -5,19 +5,32 @@ Directly sends PDF images to Gemini 2.5 Flash Vision API
 import google.generativeai as genai
 import json
 import time
+import sys
 from pathlib import Path
 from typing import Dict, Optional, List
 from pdf2image import convert_from_path
 from PIL import Image
 
-from .config import (
-    GEMINI_API_KEY,
-    GEMINI_MODEL,
-    MAX_RETRIES,
-    TEMPERATURE,
-    TOP_P,
-    TOP_K,
-)
+sys.path.insert(0, str(Path(__file__).parent))
+
+try:
+    from .config import (
+        GEMINI_API_KEY,
+        GEMINI_MODEL,
+        MAX_RETRIES,
+        TEMPERATURE,
+        TOP_P,
+        TOP_K,
+    )
+except ImportError:
+    from config import (
+        GEMINI_API_KEY,
+        GEMINI_MODEL,
+        MAX_RETRIES,
+        TEMPERATURE,
+        TOP_P,
+        TOP_K,
+    )
 
 
 class VisionExtractor:

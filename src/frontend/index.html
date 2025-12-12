@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="th">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,7 +14,21 @@
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     </script>
 </head>
+
 <body>
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay hidden">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <h2 class="loading-title">กำลังประมวลผล</h2>
+            <p class="loading-subtitle">AI กำลังวิเคราะห์เอกสาร PDF...</p>
+            <div class="loading-progress">
+                <div class="progress-bar"></div>
+            </div>
+            <p class="loading-step" id="loading-step">📄 กำลังอ่านเอกสาร...</p>
+        </div>
+    </div>
+
     <div class="app-container">
         <header class="main-header">
             <div class="logo">
@@ -28,7 +43,7 @@
         </header>
 
         <main class="workspace">
-            <aside class="sidebar">
+            <aside class="sidebar sidebar-left">
                 <div class="sidebar-panel">
                     <h3>เครื่องมือ (Tools)</h3>
                     <div class="tools-grid">
@@ -40,8 +55,8 @@
                 <div class="sidebar-panel">
                     <h3>การจัดการ (Actions)</h3>
                     <div class="action-list">
-                        <button id="btn-extract" class="action-btn primary" disabled>แปลงเป็น CSV</button>
-                        <button id="btn-clear" class="action-btn secondary">ล้างพื้นที่ที่เลือก</button>
+                        <button id="btn-extract" type="button" class="action-btn primary" disabled>แปลงเป็น CSV</button>
+                        <button id="btn-clear" type="button" class="action-btn secondary">ล้างพื้นที่ที่เลือก</button>
                     </div>
                 </div>
 
@@ -77,8 +92,29 @@
                     <button id="next-page">หน้าถัดไป ❯</button>
                 </div>
             </section>
+
+            <!-- Right Sidebar for Results -->
+            <aside id="results-sidebar" class="sidebar sidebar-right hidden">
+                <div class="sidebar-panel">
+                    <h3>📊 ความแม่นยำ</h3>
+                    <div id="confidence-display" class="confidence-box"></div>
+                </div>
+
+                <div class="sidebar-panel">
+                    <h3>📁 ไฟล์ที่สร้าง</h3>
+                    <div id="download-list" class="download-list">
+                        <!-- Download links will be added here -->
+                    </div>
+                </div>
+
+                <div class="sidebar-panel">
+                    <button id="btn-preview-data" type="button" class="action-btn primary" style="display:none;">👁️
+                        ดูข้อมูลที่แปลงได้</button>
+                </div>
+            </aside>
         </main>
     </div>
     <script src="script.js"></script>
 </body>
+
 </html>

@@ -9,8 +9,49 @@ PROJECT_ROOT = Path(__file__).parent.parent
 DATA_DIR = PROJECT_ROOT / "data"
 OUTPUT_DIR = Path(__file__).parent / "output"  # Now in backend/output
 
+# Load .env file with multiple encoding support
+def _load_env_file():
+    """Load .env file from project root with encoding handling"""
+    # .env is at project root (parent of src/, which is parent of backend/)
+    # Path(__file__) = config.py in backend/
+    # Path(__file__).parent = backend/
+    # Path(__file__).parent.parent = src/
+    # Path(__file__).parent.parent.parent = Hackathon-Digitize/ (where .env is)
+    env_path = Path(__file__).parent.parent.parent / '.env'
+    if env_path.exists():
+        try:
+            content = None
+            for encoding in ['utf-8', 'utf-8-sig', 'utf-16', 'utf-16-le', 'utf-16-be', 'latin-1']:
+                try:
+                    with open(env_path, 'r', encoding=encoding) as f:
+                        content = f.read()
+                    break
+                except (UnicodeDecodeError, UnicodeError):
+                    continue
+
+            if content:
+                # Remove BOM if present
+                content = content.lstrip('\ufeff')
+                for line in content.strip().split('\n'):
+                    line = line.strip()
+                    if line and not line.startswith('#') and '=' in line:
+                        key, _, value = line.partition('=')
+                        key = key.strip()
+                        value = value.strip().strip('"').strip("'")
+                        if key:  # Only require key, not value
+                            os.environ[key] = value
+                            # Debug: show loaded key
+                            masked = '***' + value[-4:] if len(value) > 4 else '(set)'
+                            print(f"   📦 {key} = {masked}")
+                print(f"✅ config.py: Loaded .env from {env_path}")
+        except Exception as e:
+            print(f"⚠️ config.py: Could not load .env: {e}")
+
+_load_env_file()
+
 # Gemini API Configuration
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+print(f"   🔑 GEMINI_API_KEY: {'Found (' + str(len(GEMINI_API_KEY)) + ' chars)' if GEMINI_API_KEY else 'NOT FOUND'}")
 GEMINI_MODEL = "gemini-2.5-flash"  # Latest Gemini 2.5 Flash
 
 # Extraction Method Configuration

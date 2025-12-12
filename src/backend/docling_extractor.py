@@ -5,20 +5,33 @@ Replaces EasyOCR chunked approach with layout-aware document parsing
 import google.generativeai as genai
 import json
 import time
+import sys
 from pathlib import Path
 from typing import Dict, Optional, List
 from docling.document_converter import DocumentConverter, PdfFormatOption
 from docling.datamodel.base_models import InputFormat
 from docling.datamodel.pipeline_options import PdfPipelineOptions, EasyOcrOptions
 
-from .config import (
-    GEMINI_API_KEY,
-    GEMINI_MODEL,
-    MAX_RETRIES,
-    TEMPERATURE,
-    TOP_P,
-    TOP_K,
-)
+sys.path.insert(0, str(Path(__file__).parent))
+
+try:
+    from .config import (
+        GEMINI_API_KEY,
+        GEMINI_MODEL,
+        MAX_RETRIES,
+        TEMPERATURE,
+        TOP_P,
+        TOP_K,
+    )
+except ImportError:
+    from config import (
+        GEMINI_API_KEY,
+        GEMINI_MODEL,
+        MAX_RETRIES,
+        TEMPERATURE,
+        TOP_P,
+        TOP_K,
+    )
 
 
 class DoclingExtractor:
@@ -56,15 +69,23 @@ class DoclingExtractor:
         # Initialize Docling with Thai OCR support
         print("   🔧 Initializing Docling with Thai OCR support...")
 
-        # Configure pipeline for Thai PDFs
+        # Configure pipeline for Thai PDFs - OPTIMIZED FOR SPEED
         pipeline_options = PdfPipelineOptions()
         pipeline_options.do_ocr = True
-        pipeline_options.do_table_structure = True
+        pipeline_options.do_table_structure = False  # Disable for speed (not needed for NACC forms)
 
-        # Use EasyOCR backend for Thai language support
+        # Try to use GPU for faster OCR
+        import torch
+        use_gpu = torch.cuda.is_available()
+        if use_gpu:
+            print("   🚀 GPU detected - using CUDA acceleration")
+        else:
+            print("   💻 Running on CPU (GPU would be faster)")
+
+        # Use EasyOCR backend for Thai language support - OPTIMIZED
         pipeline_options.ocr_options = EasyOcrOptions(
             lang=["th", "en"],  # Thai + English
-            use_gpu=False
+            use_gpu=use_gpu,    # Enable GPU if available
         )
 
         # Create format options dict with PdfFormatOption
@@ -77,7 +98,7 @@ class DoclingExtractor:
             format_options=format_options
         )
 
-        print("   ✅ Docling initialized with Thai OCR")
+        print("   ✅ Docling initialized with Thai OCR" + (" + GPU 🚀" if use_gpu else ""))
 
     def extract_from_pdf(
         self,

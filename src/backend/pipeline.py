@@ -7,12 +7,23 @@ from tqdm import tqdm
 from typing import Optional
 import sys
 
-from .extractor import GeminiExtractor
-from .docling_extractor import DoclingExtractor
-from .vision_extractor import VisionExtractor
-from .transformer import DataTransformer
-from .imputer import DataImputer
-from .config import DATA_DIR, OUTPUT_DIR, USE_VISION, USE_DOCLING, USE_IMPUTATION, IMPUTATION_STRATEGY, VALIDATE_PDF_BEFORE_EXTRACTION
+# Add current directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent))
+
+try:
+    from .extractor import GeminiExtractor
+    from .docling_extractor import DoclingExtractor
+    from .vision_extractor import VisionExtractor
+    from .transformer import DataTransformer
+    from .imputer import DataImputer
+    from .config import DATA_DIR, OUTPUT_DIR, USE_VISION, USE_DOCLING, USE_IMPUTATION, IMPUTATION_STRATEGY, VALIDATE_PDF_BEFORE_EXTRACTION
+except ImportError:
+    from extractor import GeminiExtractor
+    from docling_extractor import DoclingExtractor
+    from vision_extractor import VisionExtractor
+    from transformer import DataTransformer
+    from imputer import DataImputer
+    from config import DATA_DIR, OUTPUT_DIR, USE_VISION, USE_DOCLING, USE_IMPUTATION, IMPUTATION_STRATEGY, VALIDATE_PDF_BEFORE_EXTRACTION
 
 
 class Pipeline:
@@ -48,12 +59,12 @@ class Pipeline:
             self.imputer = None
 
         self.enum_mappings = self._load_enum_mappings()
-    
+
     def _load_enum_mappings(self) -> dict:
         """Load enum type mappings from CSV files"""
         enum_dir = DATA_DIR / "enum_type"
         mappings = {}
-        
+
         enum_files = [
             "asset_acquisition_type.csv",
             "asset_type.csv",
@@ -65,24 +76,24 @@ class Pipeline:
             "statement_detail_type.csv",
             "statement_type.csv",
         ]
-        
+
         for filename in enum_files:
             file_path = enum_dir / filename
             if file_path.exists():
                 df = pd.read_csv(file_path, encoding='utf-8-sig')
                 key = filename.replace('.csv', '')
                 mappings[key] = df.to_dict('records')
-        
+
         return mappings
-    
+
     def process_dataset(
-        self, 
+        self,
         mode: str = "train",
         limit: Optional[int] = None
     ):
         """
         Process entire dataset (training or test)
-        
+
         Args:
             mode: 'train' or 'test'
             limit: Optional limit on number of documents to process
@@ -104,48 +115,48 @@ class Pipeline:
             nacc_detail_file = input_dir / "Test final_nacc_detail.csv"
             output_dir = OUTPUT_DIR / "test"
             prefix = "Test_"
-        
+
         output_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # Load metadata
         print(f"\n📋 Loading metadata...")
         doc_info_df = pd.read_csv(doc_info_file, encoding='utf-8-sig')
         submitter_info_df = pd.read_csv(submitter_info_file, encoding='utf-8-sig')
         nacc_detail_df = pd.read_csv(nacc_detail_file, encoding='utf-8-sig')
-        
+
         # Imputation Step: Clean and validate metadata
         if self.use_imputation and self.imputer:
             print(f"\n🧹 Imputation: Cleaning metadata...")
             doc_info_df = self.imputer.impute_metadata(doc_info_df, "doc_info")
             submitter_info_df = self.imputer.impute_metadata(submitter_info_df, "submitter_info")
             nacc_detail_df = self.imputer.impute_metadata(nacc_detail_df, "nacc_detail")
-        
+
         # Limit if specified
         if limit:
             doc_info_df = doc_info_df.head(limit)
-        
+
         print(f"✓ Found {len(doc_info_df)} documents to process")
-        
+
         # Initialize transformer
         transformer = DataTransformer(output_dir)
-        
+
         # Process each document
         successful = 0
         failed = 0
-        
+
         for idx, doc_row in tqdm(doc_info_df.iterrows(), total=len(doc_info_df), desc="Processing PDFs"):
             doc_id = doc_row['doc_id']
             nacc_id = doc_row['nacc_id']
             pdf_filename = doc_row['doc_location_url']
-            
+
             # Find PDF file
             pdf_path = pdf_dir / pdf_filename
-            
+
             if not pdf_path.exists():
                 print(f"\n⚠️  PDF not found: {pdf_filename}")
                 failed += 1
                 continue
-            
+
             # Get submitter and NACC info
             submitter_row = submitter_info_df[
                 submitter_info_df['submitter_id'] == nacc_id
@@ -153,15 +164,15 @@ class Pipeline:
             nacc_row = nacc_detail_df[
                 nacc_detail_df['nacc_id'] == nacc_id
             ]
-            
+
             if submitter_row.empty or nacc_row.empty:
                 print(f"\n⚠️  Missing metadata for nacc_id {nacc_id}")
                 failed += 1
                 continue
-            
+
             submitter_info = submitter_row.iloc[0].to_dict()
             nacc_detail = nacc_row.iloc[0].to_dict()
-            
+
             # Imputation Step: Validate PDF before extraction
             if self.use_imputation and self.imputer and VALIDATE_PDF_BEFORE_EXTRACTION:
                 validation_result = self.imputer.validate_pdf(pdf_path)
@@ -171,7 +182,7 @@ class Pipeline:
                         print(f"      {error}")
                     failed += 1
                     continue
-            
+
             try:
                 # Extract data from PDF
                 print(f"\n🔍 Extracting: {pdf_filename}")
@@ -181,7 +192,7 @@ class Pipeline:
                     nacc_detail,
                     self.enum_mappings
                 )
-                
+
                 if extracted_data:
                     # Transform to CSV format
                     transformer.transform_document(
@@ -195,16 +206,16 @@ class Pipeline:
                 else:
                     print(f"⚠️  No data extracted")
                     failed += 1
-                    
+
             except Exception as e:
                 print(f"\n❌ Error processing {pdf_filename}: {e}")
                 failed += 1
                 continue
-        
+
         # Save all CSVs
         print(f"\n💾 Saving CSV files...")
         saved_files = transformer.save_all_csvs(prefix=prefix)
-        
+
         # Print summary
         print(f"\n" + "="*60)
         print(f"📊 PROCESSING SUMMARY")
@@ -216,9 +227,9 @@ class Pipeline:
             print(f"   - {f.name}")
         print(f"\n💾 Output directory: {output_dir}")
         print(f"="*60)
-        
+
         return output_dir
-    
+
     def process_single_pdf(
         self,
         pdf_path: Path,
@@ -227,16 +238,16 @@ class Pipeline:
         output_dir: Optional[Path] = None
     ):
         """Process a single PDF file"""
-        
+
         if not output_dir:
             output_dir = OUTPUT_DIR / "single"
-        
+
         output_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # Create minimal info
         submitter_info = {"submitter_id": submitter_id}
         nacc_detail = {"nacc_id": nacc_id}
-        
+
         print(f"🔍 Extracting: {pdf_path.name}")
         extracted_data = self.extractor.extract_from_pdf(
             pdf_path,
@@ -244,7 +255,7 @@ class Pipeline:
             nacc_detail,
             self.enum_mappings
         )
-        
+
         if extracted_data:
             # Transform and save
             transformer = DataTransformer(output_dir)
@@ -253,5 +264,5 @@ class Pipeline:
             print(f"✓ Successfully processed and saved to {output_dir}")
         else:
             print(f"⚠️  No data extracted")
-        
+
         return extracted_data

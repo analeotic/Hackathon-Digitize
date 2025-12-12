@@ -1,0 +1,10 @@
+{
+    "liveServer.settings.ignoreFiles": [
+        "**/.git/**",
+        "**/node_modules/**",
+        "**/src/backend/**",
+        "**/output/**",
+        "**/*.csv",
+        "**/*.json"
+    ]
+}

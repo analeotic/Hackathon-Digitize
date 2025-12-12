@@ -5,16 +5,30 @@ Extracts structured data from Thai asset declaration PDFs
 import google.generativeai as genai
 import json
 import time
+import sys
 from pathlib import Path
 from typing import Dict, Optional, List
-from .config import (
-    GEMINI_API_KEY,
-    GEMINI_MODEL,
-    MAX_RETRIES,
-    TEMPERATURE,
-    TOP_P,
-    TOP_K,
-)
+
+sys.path.insert(0, str(Path(__file__).parent))
+
+try:
+    from .config import (
+        GEMINI_API_KEY,
+        GEMINI_MODEL,
+        MAX_RETRIES,
+        TEMPERATURE,
+        TOP_P,
+        TOP_K,
+    )
+except ImportError:
+    from config import (
+        GEMINI_API_KEY,
+        GEMINI_MODEL,
+        MAX_RETRIES,
+        TEMPERATURE,
+        TOP_P,
+        TOP_K,
+    )
 
 
 class GeminiExtractor:
