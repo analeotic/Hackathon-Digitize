@@ -7,7 +7,7 @@ from pathlib import Path
 # Project paths
 PROJECT_ROOT = Path(__file__).parent.parent
 DATA_DIR = PROJECT_ROOT / "data"
-OUTPUT_DIR = PROJECT_ROOT / "output"
+OUTPUT_DIR = Path(__file__).parent / "output"  # Now in backend/output
 
 # Gemini API Configuration
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")

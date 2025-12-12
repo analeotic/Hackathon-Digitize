@@ -5,24 +5,28 @@ Approach 2: Template Cloning
 
 import pandas as pd
 import numpy as np
+from pathlib import Path
+
+# Get project root
+PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
 
 print("=" * 70)
 print("APPROACH 2: TEMPLATE CLONING")
 print("=" * 70)
 
 # Load reference template
-reference = pd.read_csv('summary.csv')
+reference = pd.read_csv(PROJECT_ROOT / 'data/reference/summary.csv')
 print(f"\n✅ Loaded reference template: {len(reference)} rows")
 
 # Load test metadata
-test_submitter = pd.read_csv('data/test final/test final input/Test final_submitter_info.csv')
-test_nacc = pd.read_csv('data/test final/test final input/Test final_nacc_detail.csv')
-doc_info = pd.read_csv('data/test final/test final input/Test final_doc_info.csv')
+test_submitter = pd.read_csv(PROJECT_ROOT / 'data/test final/test final input/Test final_submitter_info.csv')
+test_nacc = pd.read_csv(PROJECT_ROOT / 'data/test final/test final input/Test final_nacc_detail.csv')
+doc_info = pd.read_csv(PROJECT_ROOT / 'data/test final/test final input/Test final_doc_info.csv')
 
 # Load extracted data
-test_asset = pd.read_csv('output/test/Test_asset.csv')
-test_statement = pd.read_csv('output/test/Test_statement.csv')
-test_relative = pd.read_csv('output/test/Test_relative_info.csv')
+test_asset = pd.read_csv(Path(__file__).parent.parent / 'output/test/Test_asset.csv')
+test_statement = pd.read_csv(Path(__file__).parent.parent / 'output/test/Test_statement.csv')
+test_relative = pd.read_csv(Path(__file__).parent.parent / 'output/test/Test_relative_info.csv')
 
 print(f"✅ Loaded test data: {len(doc_info)} documents")
 
@@ -119,7 +123,7 @@ for idx, doc_row in doc_info.iterrows():
 output_df = pd.DataFrame(output_rows)
 
 # Save
-output_path = 'output/test/Test_summary.csv'
+output_path = Path(__file__).parent.parent / 'output/test/Test_summary.csv'
 output_df.to_csv(output_path, index=False)
 
 print(f"\n✅ Created {output_path}")
