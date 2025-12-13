@@ -408,26 +408,34 @@ docker system prune -a
 
 ### Technical Resources
 
-- **[TECHNICAL_REPORT.md](TECHNICAL_REPORT.md)** - 3-page technical analysis
+- **[TECHNICAL_REPORT.md](docs/TECHNICAL_REPORT.md)** - 3-page technical analysis
   - Architecture deep-dive
   - Performance benchmarks
   - Cost analysis
   - Industry comparison
 
-- **[DEMO_VIDEO_1MIN.md](DEMO_VIDEO_1MIN.md)** - 60-second demo script
-  - Timeline breakdown
-  - Voiceover script
-  - Recording checklist
+- **[WHY_DOCLING.md](docs/WHY_DOCLING.md)** - Why we use Docling library
+  - Comparison with pure Vision API
+  - Table structure preservation
+  - Technical justification
 
-- **[DEMO_GRAPHICS.md](DEMO_GRAPHICS.md)** - Visual assets
-  - Slide templates
-  - Color palette
-  - Typography guide
+- **[IMPUTATION_SUMMARY.md](docs/IMPUTATION_SUMMARY.md)** - Data imputation details
+  - 6 imputation techniques
+  - Date normalization (พ.ศ. → ค.ศ.)
+  - Impact on DQS
 
-- **[DOCKER.md](docs/DOCKER.md)** - Docker deployment guide
-  - Container setup
-  - Health checks
-  - Production tips
+### Demo & Presentation
+
+- **[DEMO_VIDEO_1MIN.md](docs/DEMO_VIDEO_1MIN.md)** - 60-second demo script
+- **[DEMO_GUIDE.md](docs/DEMO_GUIDE.md)** - CLI demo guide
+- **[DEMO_GRAPHICS.md](docs/DEMO_GRAPHICS.md)** - Visual assets
+- **[PRESENTATION_SLIDES.md](docs/PRESENTATION_SLIDES.md)** - Complete slide deck (12 slides)
+
+### Submission Guides
+
+- **[SUBMISSION_CHECKLIST.md](docs/SUBMISSION_CHECKLIST.md)** - Pre-submission checklist
+- **[KAGGLE_SUBMISSION.md](docs/KAGGLE_SUBMISSION.md)** - Kaggle-specific guide
+- **[TOOLS_AND_RESOURCES.md](docs/TOOLS_AND_RESOURCES.md)** - Complete tools list
 
 ### API Documentation
 

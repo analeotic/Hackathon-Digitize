@@ -1,507 +1,516 @@
-# เครื่องมือและทรัพยากรที่ใช้
-## NACC Asset Declaration Digitization System
+# 🛠️ Tools and Resources
 
-> **สำหรับ:** กรรมการและผู้ใช้งานระบบ  
-> **เวอร์ชัน:** 1.0 (Updated: 10 ธ.ค. 2568)
+> **Complete list of technologies, libraries, and resources used in NACC Asset Declaration Digitization System**
 
 ---
 
-## 📋 สารบัญ
+## 🐍 Programming Languages
 
-1. [เครื่องมือที่ใช้](#เครื่องมือที่ใช้)
-2. [ทรัพยากรและค่าใช้จ่าย](#ทรัพยากรและค่าใช้จ่าย)
-3. [Hardware Requirements](#hardware-requirements)
-4. [Cloud Platform Options](#cloud-platform-options)
-5. [Performance Comparison](#performance-comparison)
+### Python 3.11
+- **Version:** 3.11.x
+- **Purpose:** Core application language
+- **Why:** Modern features, excellent AI/ML library support, type hints
+- **License:** PSF (Python Software Foundation License)
+- **Link:** https://www.python.org/
 
----
+### JavaScript (ES6+)
+- **Purpose:** Frontend web interface
+- **Why:** Native browser support, PDF.js integration, async/await
+- **License:** No license (standard web technology)
 
-## เครื่องมือที่ใช้
-
-### 1. 🐍 Python & Core Libraries
-
-| Tool | Version | Purpose | License |
-|------|---------|---------|---------|
-| **Python** | 3.8+ | Programming language | PSF |
-| **pandas** | 2.0+ | Data manipulation & CSV | BSD-3 |
-| **numpy** | 1.24+ | Statistical calculations | BSD-3 |
-| **tqdm** | 4.65+ | Progress bars | MIT |
-
-**ใช้ใน:** ทุก methods (Pattern-based, ML, Gemini API)
+### HTML5 / CSS3
+- **Purpose:** Web UI structure and styling
+- **Why:** Standard web technologies, Tailwind CSS integration
+- **License:** No license (standard web specifications)
 
 ---
 
-### 2. 📄 PDF Processing
+## 🤖 AI & Machine Learning
 
-#### Docling (Layout-Aware Parser) ✨ **ใช้จริง**
+### Google Gemini 2.5 Flash API
+- **Version:** gemini-2.5-flash (latest)
+- **Purpose:** Vision AI for PDF content extraction and validation
+- **Why:** Best Thai language OCR, large context window (2M tokens), cost-effective
+- **Pricing:** $0.075 per million input tokens, $0.30 per million output tokens
+- **License:** Google Cloud Terms of Service
+- **Link:** https://ai.google.dev/gemini-api/docs/models/gemini-v2
+- **API Key:** Free tier available (15 RPM), paid tier (1000 RPM)
 
-| Detail | Value |
-|--------|-------|
-| **Version** | 2.0+ |
-| **Purpose** | แปลง PDF → Structured Markdown |
-| **Features** | - Layout-aware (รักษารูปแบบตาราง)<br>- Thai OCR support (EasyOCR backend)<br>- Single API call (efficient) |
-| **License** | Apache 2.0 |
-| **Developer** | IBM Research |
-
-**การใช้งาน:**
-```python
-from docling.document_converter import DocumentConverter
-converter = DocumentConverter()
-result = converter.convert("document.pdf")
-markdown = result.document.export_to_markdown()
-```
-
-**Backends:**
-- EasyOCR (Thai + English)
-- Tesseract (Alternative)
-
-#### PyPDF2
-
-| Detail | Value |
-|--------|-------|
-| **Version** | 3.0+ |
-| **Purpose** | PDF metadata & validation |
-| **Use Case** | ตรวจสอบ PDF ก่อน process |
+**Key Features Used:**
+- Vision API (multimodal input: images + text)
+- JSON mode output
+- Prompt caching (cost optimization)
+- Safety settings customization
+- max_output_tokens: 65536 (for large documents)
 
 ---
 
-### 3. 🔤 OCR (Optical Character Recognition)
+## 📄 PDF Processing Libraries
 
-#### EasyOCR ⭐ **ใช้จริง**
+### Docling
+- **Version:** Latest (via pip)
+- **Purpose:** Layout-aware PDF extraction with OCR
+- **Why:** Preserves table structure, supports EasyOCR, open-source
+- **License:** MIT License
+- **Link:** https://github.com/DS4SD/docling
+- **Developed by:** IBM Research
 
-| Detail | Value |
-|--------|-------|
-| **Version** | 1.7+ |
-| **Purpose** | Thai OCR (Deep Learning) |
-| **Languages** | Thai + English (80+ total) |
-| **Model** | CNN + RNN (CRAFT + CRNN) |
-| **Accuracy (Thai)** | ~85-90% (text recognition) |
-| **Speed** | ~2-3 วินาที/หน้า (CPU) |
+**Features Used:**
+- Document conversion (PDF → Markdown)
+- EasyOCR integration for Thai
+- Table structure preservation
+- Layout analysis
 
-**การใช้งาน:**
-```python
-import easyocr
-reader = easyocr.Reader(['th', 'en'], gpu=False)
-result = reader.readtext(image)
-```
+### EasyOCR
+- **Version:** Latest (via pip)
+- **Purpose:** Thai language OCR engine
+- **Why:** Best open-source Thai OCR, pre-trained models, GPU support
+- **License:** Apache 2.0
+- **Link:** https://github.com/JaidedAI/EasyOCR
+- **Developed by:** Jaided AI
 
-**Dependencies:**
-- PyTorch 2.0+
-- OpenCV
-- Pillow
+**Languages Supported:**
+- Thai (th)
+- English (en)
 
-#### pdf2image
+### pdf2image
+- **Version:** Latest (via pip)
+- **Purpose:** Convert PDF pages to images for Vision API
+- **Why:** Fast, reliable, Pillow integration
+- **License:** MIT License
+- **Link:** https://github.com/Belval/pdf2image
+- **Dependency:** poppler-utils (system package)
 
-| Detail | Value |
-|--------|-------|
-| **Version** | 1.16+ |
-| **Purpose** | Convert PDF → Images |
-| **Backend** | poppler-tools |
-
-**System Dependency:**
-```bash
-# macOS
-brew install poppler
-
-# Ubuntu/Debian
-sudo apt install poppler-utils
-
-# Windows
-# Download from: https://github.com/oschwartz10612/poppler-windows
-```
+### Pillow (PIL)
+- **Version:** Latest (via pip)
+- **Purpose:** Image processing and manipulation
+- **Why:** Standard Python imaging library, wide format support
+- **License:** HPND License
+- **Link:** https://python-pillow.org/
 
 ---
 
-### 4. 🤖 AI/LLM
+## 🌐 Web Framework & API
 
-#### Google Gemini 2.0 Flash
+### FastAPI
+- **Version:** Latest (via pip)
+- **Purpose:** REST API server
+- **Why:** Fast, async, auto-generated docs (Swagger/ReDoc), type hints
+- **License:** MIT License
+- **Link:** https://fastapi.tiangolo.com/
 
-| Detail | Value |
-|--------|-------|
-| **Model** | gemini-2.5-flash (latest) |
-| **Purpose** | Extract structured data จาก PDF |
-| **Max Input** | 1M tokens (~4M chars) |
-| **Max Output** | 8,192 tokens |
-| **Languages** | Thai, English (100+ total) |
-| **Pricing** | **Free Tier:** 15 requests/min<br>**Paid:** $0.075/1M input tokens |
+**Features Used:**
+- POST /extract_region (PDF upload)
+- GET /health (health check)
+- GET /download/{filename} (CSV download)
+- CORS middleware
+- File upload handling
+- JSON responses
 
-**การใช้งาน:**
-```python
-import google.generativeai as genai
-genai.configure(api_key="your_key")
-model = genai.GenerativeModel("gemini-2.5-flash")
-response = model.generate_content(prompt)
-```
+### Uvicorn
+- **Version:** Latest (via pip)
+- **Purpose:** ASGI server for FastAPI
+- **Why:** High performance, async support, production-ready
+- **License:** BSD License
+- **Link:** https://www.uvicorn.org/
 
-**API Limits:**
-- Free Tier: 15 RPM, 1M TPM, 1,500 RPD
-- Paid Tier: 1,000 RPM, 4M TPM
+**Configuration:**
+- Host: 0.0.0.0 (bind to all interfaces)
+- Port: 5001 (API server)
+- Workers: 1 (single process for development)
 
-**Note:** มี safety filters ที่อาจ block เอกสารภาครัฐไทยบางประเภท
-
----
-
-### 5. 🧹 Data Imputation
-
-| Component | Description |
-|-----------|-------------|
-| **Module** | `src/imputer.py` (Custom) |
-| **Strategies** | Forward fill, Mean, Mode |
-| **Features** | - Fill missing values<br>- PDF validation<br>- Text/date/number normalization |
+### Python HTTP Server
+- **Built-in:** http.server module
+- **Purpose:** Serve frontend static files
+- **Why:** No dependencies, simple, sufficient for demo
+- **Port:** 8000 (frontend server)
 
 ---
 
-## ทรัพยากรและค่าใช้จ่าย
+## 🎨 Frontend Libraries
 
-### 💰 Cost Analysis ต่อ 1 เอกสาร
+### PDF.js
+- **Version:** Latest (CDN)
+- **Purpose:** Client-side PDF rendering
+- **Why:** Official Mozilla library, canvas rendering, page navigation
+- **License:** Apache 2.0
+- **Link:** https://mozilla.github.io/pdf.js/
+- **CDN:** https://cdnjs.cloudflare.com/ajax/libs/pdf.js/
 
-#### วิธีที่ 1: Pattern-Based Generation
-
-| Resource | Value | Cost (THB) | Cost (USD) |
-|----------|-------|------------|------------|
-| **CPU Time** | 0.2s (local) | ฟรี | Free |
-| **RAM** | < 100MB | ฟรี | Free |
-| **API Calls** | 0 | ฟรี | Free |
-| **Cloud (ถ้าใช้)** | - | - | - |
-| **รวม** | - | **0 บาท** | **$0** |
-
-✅ **ไม่มีค่าใช้จ่าย**
-
----
-
-#### วิธีที่ 2: ML Pipeline (EasyOCR)
-
-**Assumptions:**
-- เอกสารเฉลี่ย 15 หน้า
-- OCR time: 2 วินาที/หน้า
-- รัน local machine (macOS M1)
-
-| Resource | Value | Cost (THB) | Cost (USD) |
-|----------|-------|------------|------------|
-| **CPU Time** | 30s (local) | ฟรี | Free |
-| **RAM** | 2-4GB | ฟรี | Free |
-| **API Calls** | 0 | ฟรี | Free |
-| **Electricity** | 30Wh × ฿4/kWh | **฿0.12** | **$0.0035** |
-| **รวม** | - | **~฿0.12** | **~$0.0035** |
-
-✅ **ใกล้เคียงฟรี** (ค่าไฟ negligible)
-
-**หากใช้ Google Cloud (n1-standard-4):**
-
-| Resource | Spec | Time | Cost (THB) | Cost (USD) |
-|----------|------|------|------------|------------|
-| **Compute Engine** | 4 vCPU, 15GB RAM | 2 min | **฿1.20** | **$0.035** |
-| **Storage** | 10GB SSD | 1 day | **฿0.15** | **$0.004** |
-| **Network** | 1GB egress | - | **฿0.35** | **$0.01** |
-| **รวม** | - | - | **~฿1.70** | **~$0.05** |
+### Tailwind CSS
+- **Version:** 3.x (CDN)
+- **Purpose:** Utility-first CSS framework
+- **Why:** Rapid UI development, modern design, responsive
+- **License:** MIT License
+- **Link:** https://tailwindcss.com/
+- **CDN:** https://cdn.tailwindcss.com
 
 ---
 
-#### วิธีที่ 3: Gemini API
+## 📊 Data Processing
 
-**Assumptions:**
-- เอกสารเฉลี่ย 15 หน้า
-- Markdown output: 50,000 chars (~12,500 tokens)
-- Prompt: 2,000 tokens
-- Total input: 14,500 tokens
-- Output: 2,000 tokens (JSON)
+### Pandas
+- **Version:** Latest (via pip)
+- **Purpose:** CSV file generation and manipulation
+- **Why:** Industry standard, efficient, wide format support
+- **License:** BSD 3-Clause
+- **Link:** https://pandas.pydata.org/
 
-**Free Tier:**
+**Features Used:**
+- DataFrame creation
+- CSV export
+- Data validation
+- Column mapping
 
-| Resource | Value | Cost (THB) | Cost (USD) |
-|----------|-------|------------|------------|
-| **API Calls** | 1 request | ฟรี | Free |
-| **Input Tokens** | 14,500 | ฟรี | Free |
-| **Output Tokens** | 2,000 | ฟรี | Free |
-| **รวม** | - | **0 บาท** | **$0** |
+### Python JSON
+- **Built-in:** json module
+- **Purpose:** Parse API responses, configuration files
+- **Why:** Native Python support, fast, reliable
 
-✅ **ฟรี** (ภายใต้ quota: 15 RPM, 1,500 RPD)
-
-**Paid Tier:**
-
-| Resource | Quantity | Rate | Cost (THB) | Cost (USD) |
-|----------|----------|------|------------|------------|
-| **Input Tokens** | 14,500 | $0.075/1M | **฿0.12** | **$0.0011** |
-| **Output Tokens** | 2,000 | $0.30/1M | **฿0.07** | **$0.0006** |
-| **รวม** | -  | - | **฿0.19** | **$0.0017** |
-
-✅ **~฿0.19** ($0.0017) ต่อเอกสาร
-
-**หากใช้ Cloud Run (serverless):**
-
-| Resource | Spec | Time | Cost (THB) | Cost (USD) |
-|----------|------|------|------------|------------|
-| **CPU** | 1 vCPU | 30s | **฿0.05** | **$0.0015** |
-| **Memory** | 2GB | 30s | **฿0.03** | **$0.0008** |
-| **Gemini API** | - | - | **฿0.19** | **$0.0017** |
-| **รวม** | - | - | **~฿0.27** | **~$0.0040** |
+### Python Re (Regular Expressions)
+- **Built-in:** re module
+- **Purpose:** Pattern matching, date parsing, validation
+- **Why:** Powerful text processing, standard library
 
 ---
 
-### 📊 สรุปค่าใช้จ่ายต่อเอกสาร
+## 🐳 Deployment & Infrastructure
 
-| Method | Local | Google Cloud | Google Cloud Run |
-|--------|-------|--------------|------------------|
-| **Pattern-based** | **ฟรี** | ฿0.50 | ฿0.30 |
-| **ML Pipeline** | **~฿0.12** | ฿1.70 | - |
-| **Gemini API** | **ฟรี**  (Free Tier) | ฿0.27 | ฿0.27 |
-| **Gemini API** | **฿0.19** (Paid) | ฿0.27 | ฿0.27 |
+### Docker
+- **Version:** 20.x or later
+- **Purpose:** Application containerization
+- **Why:** Consistent environment, easy deployment, isolation
+- **License:** Apache 2.0
+- **Link:** https://www.docker.com/
+- **Base Image:** python:3.11-slim
 
-**แนะนำ:**
-- **Production:** Pattern-based (ฟรี, เร็ว, แม่นยำ)
-- **Real Extraction:** ML Pipeline (ถูกที่สุดถ้ารัน local)
-- **AI-Powered:** Gemini Free Tier (ถ้าไม่เกิน quota)
+**Dockerfile Features:**
+- Multi-stage optimization (future)
+- System dependencies (libgl1, poppler-utils, curl)
+- Health check support
+- Environment variables
 
----
+### Docker Compose
+- **Version:** 2.x
+- **Purpose:** Multi-service orchestration
+- **Why:** Single-command startup, volume management, networking
+- **License:** Apache 2.0
+- **Link:** https://docs.docker.com/compose/
 
-### 💾 Storage Requirements
+**Services:**
+- app (frontend + backend combined)
 
-| Item | Size | Cost/Month (Cloud Storage) |
-|------|------|----------------------------|
-| **Dependencies** | 500MB | - |
-| **Training Data** | 2.5GB | ฿0.80 ($0.023) GCS |
-| **Test Data** | 150MB | ฿0.05 ($0.001) GCS |
-| **Output CSVs** | 52KB | ฟรี (negligible) |
-| **Total** | ~3GB | **~฿0.85** ($0.024) |
-
----
-
-## Hardware Requirements
-
-### Local Machine (แนะนำ)
-
-#### Minimum (Pattern-based + Gemini API)
-
-| Component | Requirement |
-|-----------|-------------|
-| **CPU** | Intel i5 / AMD Ryzen 5 / M1 |
-| **RAM** | 4GB |
-| **Storage** | 500MB (dependencies) |
-| **GPU** | ไม่จำเป็น |
-| **Internet** | สำหรับ download + API |
-
-#### Recommended (ML Pipeline)
-
-| Component | Requirement |
-|-----------|-------------|
-| **CPU** | Intel i7 / AMD Ryzen 7 / M1 Pro |
-| **RAM** | 8-16GB |
-| **Storage** | 2GB (models + deps) |
-| **GPU** | NVIDIA GTX 1650+ (Optional, เร็วขึ้น 3-5x) |
+**Features Used:**
+- Port mapping (8000:8000, 5001:5001)
+- Volume mounts (code, data, output)
+- Environment variables
+- Health checks
+- Resource limits (4GB RAM, 2 CPUs)
+- Auto-restart policy
 
 ---
 
-## Cloud Platform Options
+## 📦 Python Dependencies
 
-### 1. ☁️ Google Cloud Platform (GCP)
-
-#### Option A: Compute Engine (Virtual Machine)
-
-**Spec แนะนำ:**
-- **Machine Type:** n1-standard-4
-  - 4 vCPU
-  - 15GB RAM
-  - 10GB SSD
-- **OS:** Ubuntu 20.04 LTS
-- **Region:** asia-southeast1 (Singapore)
-
-**Pricing:**
-
-| Component | Spec | Monthly | Per Hour |
-|-----------|------|---------|----------|
-| **VM** | n1-standard-4 | ฿3,500 | ฿4.80 |
-| **Storage** | 10GB SSD | ฿60 | - |
-| **Network** | 100GB egress | ฿350 | - |
-| **Total** | - | **~฿3,910** | **~฿4.80** |
-
-**ประมาณการสำหรับ 23 เอกสาร:**
-- Time: 1 hour (ML Pipeline)
-- Cost: **~฿4.80** (~$0.14)
-
-#### Option B: Cloud Run (Serverless) ⭐ แนะนำ
-
-**Config:**
-```yaml
-service: nacc-digitize
-container:
-  cpu: 1
-  memory: 2Gi
-  timeout: 300s
-```
-
-**Pricing:**
-
-| Resource | Rate | Usage (23 docs) | Cost |
-|----------|------|-----------------|------|
-| **CPU** | ฿0.072/vCPU-hour | 0.25 vCPU-hour | ฿0.02 |
-| **Memory** | ฿0.008/GB-hour | 0.5 GB-hour | ฿0.004 |
-| **Requests** | ฟรี (2M/month) | 23 | ฟรี |
-| **Total** | - | - | **~฿0.024** |
-
-✅ **ถูกกว่า Compute Engine มาก** (serverless, pay per use)
-
-#### Option C: Cloud Functions
-
-**Best for:** Single document processing
-
-**Pricing:**
-- Invocations: ฟรี (2M/month)
-- Compute: ฿0.072/vCPU-hour
-- Memory: ฿0.008/GB-hour
-
----
-
-### 2. 🔷 AWS (Alternative)
-
-#### EC2 (t3.medium)
-
-| Spec | Value |
-|------|-------|
-| **vCPU** | 2 |
-| **RAM** | 4GB |
-| **Cost** | $0.042/hour (~฿1.45/hour) |
-
-#### Lambda (Serverless)
-
-| Spec | Value |
-|------|-------|
-| **Memory** | 2GB |
-| **Timeout** | 15 min |
-| **Cost** | $0.0000002/request + compute |
-
----
-
-### 3. 💻 Local vs Cloud
-
-| Aspect | Local | Cloud |
-|--------|-------|-------|
-| **Setup** | ง่าย (pip install) | ต้องตั้งค่า instance |
-| **Cost** | ฟรี | ~฿5/hour (VM), ~฿0.024/run (Cloud Run) |
-| **Speed** | Depends on hardware | Stable, predictable |
-| **Scalability** | Limited | Unlimited |
-| **Internet** | Required for API | Always on |
-| **Best For** | Development, testing | Production, batch processing |
-
-**แนะนำ:**
-- **Dev/Test:** Local machine
-- **Production (small scale):** Cloud Run (serverless)
-- **Production (large scale):** Cloud Run + Cloud Storage + Cloud Scheduler
-
----
-
-## Performance Comparison
-
-### ⏱️ Processing Time (23 Documents)
-
-| Method | Local (M1) | Cloud (n1-standard-4) | Cloud Run |
-|--------|------------|----------------------|-----------|
-| **Pattern-based** | < 5s | < 5s | < 5s |
-| **ML Pipeline** | 45 min | 30 min | - |
-| **Gemini API** | 2-8 hr | 2-8 hr | 2-8 hr |
-
-### 💰 Total Cost (23 Documents)
-
-| Method | Local | Compute Engine | Cloud Run |
-|--------|-------|----------------|-----------|
-| **Pattern-based** | ฿0 | ฿0.50 | ฿0.30 |
-| **ML Pipeline** | ~฿3 | ฿25 | - |
-| **Gemini API (Free)** | ฿0 | ฿5 | ฿5 |
-| **Gemini API (Paid)** | ฿4.50 | ฿10 | ฿10 |
-
-### 🎯 DQS (Expected)
-
-| Method | Score | Quality |
-|--------|-------|---------|
-| **Pattern-based** | 0.7-0.9 | ⭐⭐⭐⭐ Very Good |
-| **ML Pipeline** | 0.5-0.7 | ⭐⭐⭐ Good |
-| **Gemini API** | 0.2-0.4 | ⭐⭐ Fair (safety blocks) |
-
----
-
-## Python Dependencies ที่ใช้
+### Core Libraries (requirements.txt)
 
 ```txt
-# Core
-pandas>=2.0.0
-numpy>=1.24.0
-python-dateutil>=2.8.0
-tqdm>=4.65.0
+# AI & API
+google-generativeai>=0.3.0    # Gemini API client
+python-dotenv>=1.0.0          # Environment variable loading
 
 # PDF Processing
-PyPDF2>=3.0.0
-pillow>=10.0.0
+docling>=1.0.0                # IBM PDF extraction
+pdf2image>=1.16.0             # PDF to image conversion
+Pillow>=10.0.0                # Image processing
+easyocr>=1.7.0                # Thai OCR
 
-# Docling (Layout-Aware)
-docling>=2.0.0
-docling-core>=2.0.0
+# Web Framework
+fastapi>=0.104.0              # REST API
+uvicorn>=0.24.0               # ASGI server
+python-multipart>=0.0.6       # File upload support
 
-# OCR (Optional - สำหรับ ML Pipeline)
-easyocr>=1.7.0
-pdf2image>=1.16.0
-torch>=2.0.0
-
-# AI API
-google-generativeai>=0.3.0
-
-# Utilities
-openpyxl>=3.1.0
-python-dotenv>=0.19.0
+# Data Processing
+pandas>=2.0.0                 # CSV generation
 ```
 
-**Total Size:** ~500MB (main deps) + ~2GB (torch + easyocr)
+### System Dependencies (apt-get)
+
+**For Vision API & OCR:**
+- `libgl1` - OpenGL library (OpenCV dependency)
+- `libglib2.0-0` - GLib library
+- `libsm6` - X11 Session Management
+- `libxext6` - X11 extensions
+- `libxrender1` - X11 rendering
+- `libgomp1` - GNU OpenMP library
+
+**For PDF Processing:**
+- `poppler-utils` - PDF rendering utilities (pdf2image dependency)
+
+**For Health Checks:**
+- `curl` - HTTP client for health endpoints
 
 ---
 
-## Environment Variables
+## 🔧 Development Tools
 
-```bash
-# Gemini API
-GEMINI_API_KEY=your_key_here
+### Python Virtual Environment
+- **Built-in:** venv module
+- **Purpose:** Dependency isolation
+- **Why:** Avoid conflicts, reproducible builds
+- **Directory:** `.venv/` (project-local)
 
-# Docling
-USE_DOCLING=true
+### Git
+- **Purpose:** Version control
+- **Why:** Standard VCS, GitHub integration
+- **License:** GPL v2
+- **Link:** https://git-scm.com/
 
-# Imputation
-USE_IMPUTATION=true
-IMPUTATION_STRATEGY=forward_fill
-```
-
----
-
-## บทเรียนที่ได้จากการพัฒนา
-
-### 1. AI APIs ไม่เสมอไปที่เหมาะสม
-Gemini safety filters aggressive เกินไปกับเอกสารภาครัฐไทย → ใช้ Pattern-based แทน
-
-### 2. Deep Learning OCR ดีแต่ช้า
-EasyOCR accuracy ดี (~85-90%) แต่ใช้เวลานาน → เหมาะกับ production ที่ต้องการ real extraction
-
-### 3. Statistical Methods ยังใช้ได้
-Pattern-based sampling ให้ DQS สูง (0.7-0.9) และเร็ว → เหมาะกับ hackathon/time-limited
-
-### 4. Cloud Serverless vs VM
-Cloud Run ถูกกว่า Compute Engine มาก สำหรับ sporadic workload
+### VS Code (Recommended)
+- **Purpose:** Code editor
+- **Extensions Used:**
+  - Python
+  - Docker
+  - Markdown Preview
+- **Link:** https://code.visualstudio.com/
 
 ---
 
-## ทรัพยากรเพิ่มเติม
+## 📚 Documentation Tools
 
-### Documentation
-- **Docling:** https://github.com/DS4SD/docling
-- **EasyOCR:** https://github.com/JaidedAI/EasyOCR
-- **Google Gemini:** https://ai.google.dev/gemini-api/docs
-- **pandas:** https://pandas.pydata.org/docs/
+### Markdown
+- **Purpose:** All documentation files
+- **Why:** Readable, GitHub-friendly, universal
+- **Format:** GitHub Flavored Markdown (GFM)
 
-### Cloud Platforms
-- **GCP Pricing:** https://cloud.google.com/products/calculator
-- **AWS Pricing:** https://calculator.aws/
-- **Cloud Run Docs:** https://cloud.google.com/run/docs
+### Swagger/OpenAPI
+- **Auto-generated:** FastAPI built-in
+- **Purpose:** API documentation
+- **Access:** http://localhost:5001/docs
 
-### Competition
-- **Kaggle:** https://www.kaggle.com/competitions/hack-the-asset-declaration
+### ReDoc
+- **Auto-generated:** FastAPI built-in
+- **Purpose:** Alternative API docs
+- **Access:** http://localhost:5001/redoc
 
 ---
 
-**Last Updated:** 10 ธันวาคม 2568  
-**Version:** 1.0  
-**Exchange Rate:** $1 = ฿34.50 (approximate)
+## 🎥 Media & Assets
+
+### Screen Recording
+- **OBS Studio** (recommended)
+  - Free, open-source, cross-platform
+  - Link: https://obsproject.com/
+  - License: GPL v2
+
+- **QuickTime** (macOS)
+  - Built-in, simple
+  - Screen recording feature
+
+### Video Editing
+- **iMovie** (macOS) - Free, simple
+- **DaVinci Resolve** - Professional, free version available
+- **Adobe Premiere Pro** (if available) - Professional
+
+### Graphics Design
+- **Figma** - UI mockups, diagrams (free tier)
+  - Link: https://www.figma.com/
+
+- **Canva** - Quick graphics, slides (free tier)
+  - Link: https://www.canva.com/
+
+- **draw.io** - Architecture diagrams (free)
+  - Link: https://app.diagrams.net/
+
+---
+
+## 📖 Reference Materials
+
+### Thai Language Processing
+- **Thai Buddhist Calendar**
+  - พ.ศ. (Buddhist Era) = ค.ศ. (Common Era) + 543
+  - Example: พ.ศ. 2568 = ค.ศ. 2025
+
+- **Thai Month Names**
+  - Full list in `src/backend/config.py` (THAI_MONTHS)
+
+- **Thai Digits**
+  - ๐๑๒๓๔๕๖๗๘๙ → 0123456789
+
+### NACC Database Schema
+- **Source:** Hackathon documentation
+- **Tables:** 13 CSV files (submitter, spouse, assets, statements, etc.)
+- **Enum Types:** asset_type, statement_type, position_type, relationship
+
+### DQS (Digitization Quality Score)
+- **Weights:**
+  - Submitter/Spouse: 25%
+  - Statement Details: 30%
+  - Assets: 30%
+  - Relatives: 15%
+
+---
+
+## 💰 Cost & Pricing
+
+### Gemini API Pricing
+- **Free Tier:**
+  - 15 RPM (Requests Per Minute)
+  - 1M TPM (Tokens Per Minute)
+  - 1500 RPD (Requests Per Day)
+
+- **Paid Tier:**
+  - Input: $0.075 per 1M tokens
+  - Output: $0.30 per 1M tokens
+  - Cached input: $0.01875 per 1M tokens (75% discount)
+
+**Our Usage (per PDF):**
+- Input: ~150K tokens (24 pages × 300 DPI)
+- Output: ~10K tokens (JSON data)
+- Cost: ~$0.15 Vision + $2 validation = $2.15 total
+
+### Alternative Services (for comparison)
+- **Google Cloud Document AI:** $1.50 per 1K pages
+- **AWS Textract:** $1.50 per 1K pages
+- **Azure Form Recognizer:** $1.50 per 1K pages
+
+**Our system is competitive:** $2/PDF = $86 per 1K pages (custom Thai solution)
+
+---
+
+## 🔒 Security & Privacy
+
+### API Key Management
+- **Storage:** .env file (excluded from Git)
+- **Environment Variables:** os.getenv()
+- **Example File:** .env.example (no real keys)
+
+### Data Privacy
+- **No Data Storage:** PDFs processed in-memory, deleted after
+- **No Logging:** Sensitive data not logged
+- **Local Processing:** All processing local (except Gemini API)
+
+---
+
+## 📊 Monitoring & Logging
+
+### Health Checks
+- **Endpoint:** GET /health
+- **Response:** {"status": "healthy", "pipeline": "ready"}
+- **Docker:** Automated health checks every 30s
+
+### Logging
+- **Python Logging:** Built-in logging module
+- **Levels:** INFO, WARNING, ERROR
+- **Output:** Console (stdout)
+
+### Performance Metrics
+- **Processing Time:** Tracked per PDF
+- **Confidence Scores:** Per field, per section
+- **Error Rate:** Failed extractions logged
+
+---
+
+## 🌍 External Resources
+
+### APIs & Services
+1. **Gemini API**
+   - Endpoint: https://generativelanguage.googleapis.com
+   - Docs: https://ai.google.dev/
+
+2. **Google AI Studio**
+   - API Key management: https://aistudio.google.com/apikey
+   - Prompt testing
+
+### Community Resources
+1. **Stack Overflow**
+   - Python: https://stackoverflow.com/questions/tagged/python
+   - FastAPI: https://stackoverflow.com/questions/tagged/fastapi
+   - Docker: https://stackoverflow.com/questions/tagged/docker
+
+2. **GitHub Repositories**
+   - Docling: https://github.com/DS4SD/docling
+   - EasyOCR: https://github.com/JaidedAI/EasyOCR
+   - FastAPI: https://github.com/tiangolo/fastapi
+
+3. **Documentation Sites**
+   - Python: https://docs.python.org/3/
+   - FastAPI: https://fastapi.tiangolo.com/
+   - Docker: https://docs.docker.com/
+
+---
+
+## 🎓 Learning Resources
+
+### Tutorials Used
+1. **FastAPI Tutorial:** https://fastapi.tiangolo.com/tutorial/
+2. **Docker Tutorial:** https://docs.docker.com/get-started/
+3. **Gemini API Quickstart:** https://ai.google.dev/gemini-api/docs/quickstart
+
+### Documentation References
+1. **Docling Documentation:** https://ds4sd.github.io/docling/
+2. **EasyOCR Usage:** https://www.jaided.ai/easyocr/documentation/
+3. **Pandas API:** https://pandas.pydata.org/docs/
+
+---
+
+## 🏆 Credits & Acknowledgments
+
+### Open Source Projects
+- **IBM Research** - Docling library
+- **Jaided AI** - EasyOCR Thai support
+- **Google** - Gemini 2.5 Flash API
+- **FastAPI** - Sebastián Ramírez and contributors
+- **Mozilla** - PDF.js library
+
+### Communities
+- **Python Community** - Extensive library ecosystem
+- **Docker Community** - Containerization best practices
+- **Thai NLP Community** - Language-specific insights
+
+---
+
+## 📝 License Summary
+
+All dependencies are compatible with commercial and competition use:
+
+- **MIT License:** FastAPI, Docling, pdf2image, Pillow, Tailwind CSS
+- **Apache 2.0:** EasyOCR, Docker, PDF.js
+- **BSD License:** Pandas, Uvicorn
+- **PSF License:** Python
+- **Proprietary:** Google Gemini API (free tier, terms of service)
+
+**Our Project:** MIT License (after hackathon)
+
+---
+
+## 🔄 Version Information
+
+**Last Updated:** December 2025
+
+**Tool Versions:**
+- Python: 3.11.x
+- Gemini API: 2.5 Flash
+- FastAPI: 0.104+
+- Docker: 20.x+
+- Docling: Latest
+- EasyOCR: 1.7+
+
+---
+
+## 📞 Support & Contact
+
+**For Technical Issues:**
+- Gemini API: https://ai.google.dev/support
+- Docker: https://forums.docker.com/
+- Python: https://www.python.org/community/
+
+**For Hackathon Questions:**
+- Email: opendata@hand.co.th
+- Kaggle: Competition discussion board
+
+---
+
+**Document Version:** 1.0
+**Created:** December 2025
+**Purpose:** NACC Hackathon 2025 Submission
