@@ -14,6 +14,7 @@ from PIL import Image
 sys.path.insert(0, str(Path(__file__).parent))
 
 try:
+    from .pdf_cache import get_cache
     from .config import (
         GEMINI_API_KEY,
         GEMINI_MODEL,
@@ -23,6 +24,7 @@ try:
         TOP_K,
     )
 except ImportError:
+    from pdf_cache import get_cache
     from config import (
         GEMINI_API_KEY,
         GEMINI_MODEL,
@@ -90,10 +92,30 @@ class VisionExtractor:
             print(f"   📸 Converting PDF to images...")
             start_time = time.time()
 
-            # Convert PDF to images (300 DPI for good quality)
-            images = convert_from_path(str(pdf_path), dpi=300)
+            # Try to get from cache first
+            cache = get_cache()
+            images = cache.get(pdf_path)
 
-            print(f"   ✅ Converted {len(images)} pages in {time.time() - start_time:.1f}s")
+            if images is None:
+                # Cache miss - convert PDF to images
+                # Use parallel processing with thread_count for faster conversion
+                import os
+                cpu_count = os.cpu_count() or 4
+                thread_count = min(cpu_count, 4)  # Max 4 threads for stability
+
+                images = convert_from_path(
+                    str(pdf_path),
+                    dpi=300,
+                    thread_count=thread_count  # Parallel processing
+                )
+                conversion_time = time.time() - start_time
+
+                # Store in cache for future use
+                cache.put(pdf_path, images, conversion_time)
+                print(f"   ✅ Converted {len(images)} pages in {conversion_time:.1f}s (using {thread_count} threads)")
+            else:
+                # Cache hit - already printed by cache.get()
+                pass
 
             # Build prompt
             prompt = self._build_vision_prompt(

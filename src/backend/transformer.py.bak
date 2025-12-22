@@ -198,7 +198,10 @@ class DataTransformer:
                 "position_title": pos.get("position_title", ""),
                 "position_agency": pos.get("position_agency", ""),
             }
-            self.data_lists["spouse_position"].append(row)
+            self.dfs["spouse_position"] = pd.concat([
+                self.dfs["spouse_position"],
+                pd.DataFrame([row])
+            ], ignore_index=True)
     
     def _transform_relatives(self, relatives: List[Dict], submitter_id: int):
         """Transform relatives information"""
@@ -217,7 +220,10 @@ class DataTransformer:
                 "occupation": rel.get("occupation", ""),
                 "office_name": rel.get("office_name", ""),
             }
-            self.data_lists["relative_info"].append(row)
+            self.dfs["relative_info"] = pd.concat([
+                self.dfs["relative_info"],
+                pd.DataFrame([row])
+            ], ignore_index=True)
     
     def _transform_statements(self, statements: List[Dict], submitter_id: int, nacc_id: int):
         """Transform statements"""
@@ -236,7 +242,10 @@ class DataTransformer:
                 "statement_number": stmt.get("statement_number"),
                 "valuation": stmt.get("valuation"),
             }
-            self.data_lists["statement"].append(row)
+            self.dfs["statement"] = pd.concat([
+                self.dfs["statement"],
+                pd.DataFrame([row])
+            ], ignore_index=True)
     
     def _transform_statement_details(self, details: List[Dict]):
         """Transform statement details"""
@@ -251,7 +260,10 @@ class DataTransformer:
                 "statement_detail_name": detail.get("statement_detail_name", ""),
                 "valuation": detail.get("valuation"),
             }
-            self.data_lists["statement_detail"].append(row)
+            self.dfs["statement_detail"] = pd.concat([
+                self.dfs["statement_detail"],
+                pd.DataFrame([row])
+            ], ignore_index=True)
     
     def _transform_assets(self, assets: List[Dict], submitter_id: int, nacc_id: int):
         """Transform assets"""
@@ -294,7 +306,10 @@ class DataTransformer:
                 "owner_by_child": owner_child,
                 "latest_submitted_date": asset.get("latest_submitted_date", ""),
             }
-            self.data_lists["asset"].append(row)
+            self.dfs["asset"] = pd.concat([
+                self.dfs["asset"],
+                pd.DataFrame([row])
+            ], ignore_index=True)
     
     def _transform_asset_land(self, land_info: List[Dict]):
         """Transform land asset information"""
@@ -315,7 +330,10 @@ class DataTransformer:
                 "right_area_ngan": land.get("right_area_ngan"),
                 "right_area_wa": land.get("right_area_wa"),
             }
-            self.data_lists["asset_land_info"].append(row)
+            self.dfs["asset_land_info"] = pd.concat([
+                self.dfs["asset_land_info"],
+                pd.DataFrame([row])
+            ], ignore_index=True)
     
     def _transform_asset_building(self, building_info: List[Dict]):
         """Transform building asset information"""
@@ -332,7 +350,10 @@ class DataTransformer:
                 "district": building.get("district", ""),
                 "province": building.get("province", ""),
             }
-            self.data_lists["asset_building_info"].append(row)
+            self.dfs["asset_building_info"] = pd.concat([
+                self.dfs["asset_building_info"],
+                pd.DataFrame([row])
+            ], ignore_index=True)
     
     def _transform_asset_vehicle(self, vehicle_info: List[Dict]):
         """Transform vehicle asset information"""
@@ -352,7 +373,10 @@ class DataTransformer:
                 "engine_number": vehicle.get("engine_number", ""),
                 "chassis_number": vehicle.get("chassis_number", ""),
             }
-            self.data_lists["asset_vehicle_info"].append(row)
+            self.dfs["asset_vehicle_info"] = pd.concat([
+                self.dfs["asset_vehicle_info"],
+                pd.DataFrame([row])
+            ], ignore_index=True)
     
     def _transform_asset_other(self, other_info: List[Dict]):
         """Transform other asset information"""
@@ -365,7 +389,10 @@ class DataTransformer:
                 "asset_id": other.get("asset_id"),
                 "other_asset_description": other.get("other_asset_description", ""),
             }
-            self.data_lists["asset_other_asset_info"].append(row)
+            self.dfs["asset_other_asset_info"] = pd.concat([
+                self.dfs["asset_other_asset_info"],
+                pd.DataFrame([row])
+            ], ignore_index=True)
     
     def save_all_csvs(self, prefix: str = ""):
         """

@@ -1,6 +1,10 @@
 """
 Docling-based PDF Extractor with Gemini Integration
 Replaces EasyOCR chunked approach with layout-aware document parsing
+
+OPTIMIZATIONS:
+- Lazy loading of torch and EasyOCR (only when Docling is actually used)
+- Cached PDF conversions shared with Vision extractor
 """
 import google.generativeai as genai
 import json
@@ -8,13 +12,11 @@ import time
 import sys
 from pathlib import Path
 from typing import Dict, Optional, List
-from docling.document_converter import DocumentConverter, PdfFormatOption
-from docling.datamodel.base_models import InputFormat
-from docling.datamodel.pipeline_options import PdfPipelineOptions, EasyOcrOptions
 
 sys.path.insert(0, str(Path(__file__).parent))
 
 try:
+    from .pdf_cache import get_cache
     from .config import (
         GEMINI_API_KEY,
         GEMINI_MODEL,
@@ -24,6 +26,7 @@ try:
         TOP_K,
     )
 except ImportError:
+    from pdf_cache import get_cache
     from config import (
         GEMINI_API_KEY,
         GEMINI_MODEL,
@@ -66,8 +69,28 @@ class DoclingExtractor:
             "max_output_tokens": 32768,  # Increased for larger PDFs
         }
 
-        # Initialize Docling with Thai OCR support
-        print("   🔧 Initializing Docling with Thai OCR support...")
+        # Lazy initialization of Docling (deferred until first use)
+        # This saves 10-15 seconds when using Vision API instead
+        self.converter = None
+        self._initialized = False
+        print("   ⚡ Docling will initialize on first use (lazy loading)")
+
+    def _ensure_initialized(self):
+        """
+        Initialize Docling converter on first use (lazy loading).
+
+        OPTIMIZATION: Torch and EasyOCR are heavy dependencies (~1-2GB).
+        Only load them when Docling extractor is actually used.
+        """
+        if self._initialized:
+            return
+
+        print("   🔧 Initializing Docling with Thai OCR support (first use)...")
+
+        # Lazy import heavy dependencies
+        from docling.document_converter import DocumentConverter, PdfFormatOption
+        from docling.datamodel.base_models import InputFormat
+        from docling.datamodel.pipeline_options import PdfPipelineOptions, EasyOcrOptions
 
         # Configure pipeline for Thai PDFs - OPTIMIZED FOR SPEED
         pipeline_options = PdfPipelineOptions()
@@ -98,6 +121,7 @@ class DoclingExtractor:
             format_options=format_options
         )
 
+        self._initialized = True
         print("   ✅ Docling initialized with Thai OCR" + (" + GPU 🚀" if use_gpu else ""))
 
     def extract_from_pdf(
@@ -120,6 +144,9 @@ class DoclingExtractor:
             Structured data dictionary matching database schema
         """
         try:
+            # Ensure Docling is initialized (lazy loading)
+            self._ensure_initialized()
+
             print(f"   📖 Converting PDF with Docling (layout-aware)...")
 
             # Convert PDF to structured document
